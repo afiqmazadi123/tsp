@@ -476,11 +476,15 @@
     }
   });
 
-  setDateControlsFromDataset();
-  humanizeNavigation();
-  addMobileNavigation();
+  async function initializeEnhancements() {
+    if (window.DataLoader?.ready) await window.DataLoader.ready;
+    setDateControlsFromDataset();
+    humanizeNavigation();
+    addMobileNavigation();
+  }
 
-  // Re-render once so the initial dashboard receives the enhancement layer.
-  App.renderCurrentView();
+  initializeEnhancements().catch(err => {
+    console.warn('Enhancement initialization failed:', err);
+  });
 
 })(window, document);
