@@ -15,12 +15,12 @@
       const hostRates = Payroll.getAllHostRates();
 
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="view-header">
           <div>
-            <h2 style="font-size:20px;font-weight:700">Admin Control Panel</h2>
-            <p style="font-size:12.5px;color:var(--text-tertiary)">Manage creator hourly rates, sub-accounts, passwords/PINs, and cloud data portability</p>
+            <h2 class="view-title">Admin Control Panel</h2>
+            <p class="view-subtitle">Manage creator hourly rates, sub-accounts, passwords/PINs, and cloud data portability</p>
           </div>
-          <div style="display:flex;gap:10px;">
+          <div class="action-row">
             <button class="apple-btn apple-btn-secondary" data-app-action="exportFullBackupJSON">Download Data Backup</button>
             <button class="apple-btn apple-btn-primary" data-app-action="openAddAccountModal">+ New Sub-Account</button>
           </div>
@@ -57,7 +57,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="apple-table">
+            <table class="apple-table" data-sortable="true">
               <thead>
                 <tr>
                   <th>Host</th>
@@ -121,7 +121,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="apple-table">
+            <table class="apple-table" data-sortable="true">
               <thead>
                 <tr>
                   <th>User / Evaluator</th>
@@ -265,7 +265,7 @@
               </div>
             </div>
 
-            <div style="display:flex;gap:10px;">
+            <div class="action-row">
               <button class="apple-btn apple-btn-secondary" data-app-action="exportFullBackupJSON">Download Complete Backup JSON</button>
               <button class="apple-btn apple-btn-secondary" data-app-action="openImportBackupModal">Restore Backup JSON</button>
             </div>
@@ -279,18 +279,18 @@
       const key = document.getElementById('supabase-anon-key').value.trim();
 
       if (!url || !key) {
-        alert('Please enter both Supabase Project URL and Anon Public Key.');
+        window.UI?.toast?.('Please enter both Supabase Project URL and Anon Public Key.', 'warning');
         return;
       }
 
       window.SupabaseEngine.saveConfig(url, key);
       const res = await window.SupabaseEngine.testConnection();
       if (res.success) {
-        alert('SUCCESS: Connected to Supabase Cloud Database! Syncing data now...');
+        window.UI?.toast?.('Connected to Supabase. Pulling latest cloud data…', 'success');
         await window.SupabaseEngine.syncDown();
         this.renderCurrentView();
       } else {
-        alert('CONNECTION NOTICE: ' + res.message);
+        window.UI?.toast?.(res.message, 'error');
         this.renderCurrentView();
       }
     },
@@ -298,23 +298,23 @@
     async pullSupabaseData() {
       const ok = await window.SupabaseEngine.syncDown();
       if (ok) {
-        alert('Successfully pulled latest sub-accounts, assessments, and rates from Supabase Cloud!');
+        window.UI?.toast?.('Latest cloud data pulled successfully.', 'success');
         this.renderCurrentView();
       } else {
-        alert('Failed to pull from Supabase. Check internet connection and API keys.');
+        window.UI?.toast?.('Cloud pull failed. Check connection and API keys.', 'error');
       }
     },
 
     async pushSupabaseData() {
       const res = await window.SupabaseEngine.syncUp();
-      alert(res.message);
+      window.UI?.toast?.(res.message, res.success === false ? 'error' : 'success');
       this.renderCurrentView();
     },
 
     disconnectSupabase() {
       if (confirm('Disconnect from Supabase? The platform will return to LocalStorage mode.')) {
         window.SupabaseEngine.disconnect();
-        alert('Disconnected from Supabase.');
+        window.UI?.toast?.('Disconnected from Supabase.', 'success');
         this.renderCurrentView();
       }
     },
@@ -322,9 +322,9 @@
     copySQLSchema() {
       const sql = window.SupabaseEngine.getSQLSchemaScript();
       navigator.clipboard.writeText(sql).then(() => {
-        alert('SQL Schema copied to clipboard! Paste it into Supabase SQL Editor and click Run.');
+        window.UI?.toast?.('SQL schema copied to clipboard.', 'success');
       }).catch(() => {
-        alert('Please select and copy the SQL code manually.');
+        window.UI?.toast?.('Clipboard access failed. Copy the SQL manually.', 'warning');
       });
     },
 
@@ -365,7 +365,7 @@
       document.getElementById('btn-process-backup').onclick = () => {
         const fileInput = document.getElementById('backup-file-input');
         if (!fileInput.files || fileInput.files.length === 0) {
-          alert('Please choose a backup JSON file first.');
+          window.UI?.toast?.('Choose a backup JSON file first.', 'warning');
           return;
         }
         const reader = new FileReader();
@@ -378,10 +378,10 @@
             if (data.assessments) localStorage.setItem('fyc_assessments', JSON.stringify(data.assessments));
             if (data.scoringWeights) localStorage.setItem('fyc_scoring_weights', JSON.stringify(data.scoringWeights));
 
-            alert('Backup restored successfully! Reloading...');
+            window.UI?.toast?.('Backup restored. Reloading…', 'success');
             location.reload();
           } catch (err) {
-            alert('Invalid backup JSON format: ' + err.message);
+            window.UI?.toast?.('Invalid backup JSON: ' + err.message, 'error');
           }
         };
         reader.readAsText(fileInput.files[0]);
@@ -394,8 +394,8 @@
     renderSettingsView(container) {
       container.innerHTML = `
         <div style="margin-bottom:8px;">
-          <h2 style="font-size:20px;font-weight:700">Platform Settings & Data Connection</h2>
-          <p style="font-size:12.5px;color:var(--text-tertiary)">Manage master spreadsheet bindings, sync intervals, and sub-accounts</p>
+          <h2 class="view-title">Platform Settings & Data Connection</h2>
+          <p class="view-subtitle">Manage master spreadsheet bindings, sync intervals, and sub-accounts</p>
         </div>
 
         <div class="glass-card" style="max-width:700px">
@@ -437,16 +437,16 @@
       const id = document.getElementById('setting-sheet-id').value.trim();
       const name = document.getElementById('setting-sheet-name').value.trim();
       SyncEngine.saveConfig(id, name);
-      alert('Google Sheet settings saved successfully!');
+      window.UI?.toast?.('Google Sheet settings saved.', 'success');
     },
 
     async triggerSync() {
       const res = await SyncEngine.syncFromGoogleSheet();
       if (res.success) {
-        alert(`Sync successful! Updated ${res.count} sessions from Google Sheets.`);
+        window.UI?.toast?.(`Sync complete: ${res.count.toLocaleString('id-ID')} sessions updated.`, 'success');
         this.renderCurrentView();
       } else {
-        alert(res.message);
+        window.UI?.toast?.(res.message, res.success === false ? 'error' : 'success');
       }
     },
 
