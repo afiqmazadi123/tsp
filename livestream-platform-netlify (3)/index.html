@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livestream Performance Intelligence Platform | Apple Pro Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Ambient Glow Background -->
+  <div class="ambient-glow"></div>
+
+  <div id="app-container">
+    <!-- Apple Glassmorphic Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-badge">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="brand-info">
+          <h1>FYC Intelligence</h1>
+          <p>Livestream Pro Platform</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Intelligence</div>
+        <a class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Executive Overview</span>
+        </a>
+        <a class="nav-item" data-view="analytics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Live Analytics</span>
+        </a>
+        <a class="nav-item" data-view="hosts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Hosts & Raport</span>
+          <span class="badge">15</span>
+        </a>
+        <a class="nav-item" data-view="brands">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>Brand Analytics</span>
+          <span class="badge">6</span>
+        </a>
+
+        <div class="nav-section-title">Operations & Finance</div>
+        <a class="nav-item" data-view="payroll">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span>Payroll Verification</span>
+        </a>
+        <a class="nav-item" data-view="assessment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Scoring Engine</span>
+        </a>
+        <a class="nav-item" data-view="reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Report Generator</span>
+        </a>
+
+        <div class="nav-section-title">Management & Admin</div>
+        <a class="nav-item" data-view="admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Admin Control Panel</span>
+        </a>
+        <a class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Connection & Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-pill" id="sidebar-account-btn" style="cursor:pointer;" title="Click to switch sub-account">
+          <div class="user-avatar" id="sidebar-user-avatar">AM</div>
+          <div class="user-meta">
+            <div class="name" id="sidebar-user-name">Afiq Mazadi</div>
+            <div class="role" id="sidebar-user-role">Lead Live Operations</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main id="main-content">
+      <!-- Topbar Header -->
+      <header id="topbar">
+        <div class="topbar-left">
+          <h2 class="page-title" id="current-page-title">Executive Overview</h2>
+          
+          <div class="sync-status-pill" id="sync-trigger-btn" title="Click to sync or import Google Sheet">
+            <span class="status-dot" id="sync-status-dot"></span>
+            <span id="sync-status-text">Master Data Synced (1,798 shifts)</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Sub-Account Switcher Pill -->
+          <div class="account-pill" id="topbar-account-btn" title="Click to switch sub-account / team reviewer">
+            <div class="user-avatar" id="topbar-user-avatar" style="width:22px;height:22px;font-size:10px;">AM</div>
+            <span id="topbar-user-name" style="font-weight:500;">Afiq Mazadi</span>
+            <span style="font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,0.1);color:var(--text-tertiary)" id="topbar-user-role">Admin</span>
+          </div>
+
+          <!-- Platform Segmented Control -->
+          <div class="segmented-control">
+            <button class="seg-btn platform-seg-btn active" data-platform="all">All</button>
+            <button class="seg-btn platform-seg-btn" data-platform="TikTok">TikTok</button>
+            <button class="seg-btn platform-seg-btn" data-platform="Shopee">Shopee</button>
+          </div>
+
+          <!-- Brand Filter -->
+          <select id="filter-brand" class="select-filter">
+            <option value="all">All Brands (6)</option>
+            <option value="YESSICA SHOP">Yessica Shop</option>
+            <option value="NUFACE">Nuface</option>
+            <option value="AWDAY">Awday</option>
+            <option value="4CONNECT">4Connect</option>
+            <option value="YESSICA MALAY">Yessica Malay</option>
+            <option value="BEAUTY OUTLET">Beauty Outlet</option>
+          </select>
+
+          <!-- Date Range Filter with Custom Start & End Date Pickers -->
+          <div style="display:flex;align-items:center;gap:6px;">
+            <select id="filter-date-range" class="select-filter">
+              <option value="all">All Time (Jul - Sep 2026)</option>
+              <option value="today">Today (17 Sep 2026)</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="this_month">September 2026</option>
+              <option value="last_month">August 2026</option>
+              <option value="jul_2026">July 2026</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+
+            <!-- Custom Start + End Date Container -->
+            <div id="custom-date-container" style="display:none;align-items:center;gap:6px;background:rgba(255,255,255,0.04);padding:2px 8px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+              <input type="date" id="filter-start-date" class="date-input-apple" value="2026-07-01" min="2026-07-01" max="2026-09-17" title="Start Date" />
+              <span style="font-size:11px;color:var(--text-tertiary)">to</span>
+              <input type="date" id="filter-end-date" class="date-input-apple" value="2026-09-17" min="2026-07-01" max="2026-09-17" title="End Date" />
+            </div>
+          </div>
+
+          <!-- Pitch Mode Button -->
+          <button class="apple-btn apple-btn-pitch" id="btn-pitch-mode">
+            <span>Client Pitch Mode</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="apple-btn apple-btn-secondary" id="theme-toggle-btn" title="Toggle Dark/Light Mode" style="padding:7px 10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic View Container -->
+      <div class="content-body" id="view-render-area">
+        <div style="padding:40px;text-align:center;color:var(--text-secondary);">
+          <div style="font-size:24px;margin-bottom:8px;">⚡</div>
+          <div style="font-size:16px;font-weight:600;color:var(--text-primary);">Loading FYC Livestream Intelligence...</div>
+          <div style="font-size:12px;margin-top:4px;">Connecting to 1,798 shifts across TikTok & Shopee Live</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Host Detail Slide-over Drawer -->
+  <div class="side-drawer" id="host-detail-drawer">
+    <div class="drawer-header">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.06em;color:var(--text-tertiary);text-transform:uppercase">Host Intelligence Raport</span>
+      <button class="close-btn" id="close-drawer-btn">&times;</button>
+    </div>
+    <div id="drawer-content-area" style="margin-top:20px;display:flex;flex-direction:column;"></div>
+  </div>
+
+  <!-- Generic Modal -->
+  <div class="modal-backdrop" id="generic-modal" onclick="if(event.target===this) App.closeModal()">
+    <div class="modal-window">
+      <div id="modal-inner-content"></div>
+    </div>
+  </div>
+
+  <!-- Scripts Stack -->
+  <script src="js/data.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/apple-charts.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/payroll.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
