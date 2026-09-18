@@ -49,6 +49,36 @@
 
         <div class="glass-card" style="margin-bottom:20px;padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <h4 style="font-size:13px;font-weight:600;">PIC Monthly Averages</h4>
+              <p class="helper-text">Each PIC is weighted equally after averaging their Mid-Month + End-Month cycles.</p>
+            </div>
+            <span class="weight-total-badge">${scored.assessData.reviewerCount || 0} PIC</span>
+          </div>
+          <div class="pic-average-list">
+            ${(scored.assessData.reviewerSummaries || []).length ? scored.assessData.reviewerSummaries.map(summary => {
+              const raw = (summary.cta + summary.pin + summary.discipline + summary.grooming) / 4;
+              return `
+                <div class="pic-average-row">
+                  <div>
+                    <strong>${summary.reviewer}</strong>
+                    <span>${summary.completedBothCycles ? '2/2 cycles complete' : summary.cycleCount + '/2 cycles complete'}</span>
+                  </div>
+                  <div class="pic-average-metrics">
+                    <span>CTA ${summary.cta.toFixed(1)}</span>
+                    <span>Pin ${summary.pin.toFixed(1)}</span>
+                    <span>Disc ${summary.discipline.toFixed(1)}</span>
+                    <span>Groom ${summary.grooming.toFixed(1)}</span>
+                    <strong>Avg ${raw.toFixed(2)}</strong>
+                  </div>
+                </div>
+              `;
+            }).join('') : '<div class="helper-text">No PIC assessment submitted for this month yet.</div>'}
+          </div>
+        </div>
+
+        <div class="glass-card" style="margin-bottom:20px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <h4 style="font-size:13px;font-weight:600;">Supervisor Assessments (${reviews.length})</h4>
             <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" data-app-action="openAddReviewModal" data-app-arg="${scored.name}">+ Grade Host</button>
           </div>
