@@ -164,7 +164,10 @@
 
           <div class="scoring-config-panel">
             <div class="slider-group">
-              <h4 style="font-size:13px;font-weight:600;color:var(--apple-cyan)">Overall Weight Split</h4>
+              <div class="weight-group-heading">
+                <h4 style="color:var(--apple-cyan)">Overall Weight Split</h4>
+                <span class="weight-total-badge">Linked · 100%</span>
+              </div>
               <div class="slider-item">
                 <div class="slider-item-header">
                   <span>Quantitative Performance</span>
@@ -182,38 +185,44 @@
             </div>
 
             <div class="slider-group">
-              <h4 style="font-size:13px;font-weight:600;color:var(--apple-purple)">Performance Metrics Weight</h4>
+              <div class="weight-group-heading">
+                <h4 style="color:var(--apple-purple)">Performance Metrics Weight</h4>
+                <span class="weight-total-badge">Linked · 100%</span>
+              </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>GMV Volume</span><span id="label-pw-gmv">${weights.performance.gmv}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.gmv}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv" />
+                <input type="range" min="5" max="90" value="${weights.performance.gmv}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>GMV / Hour Productivity</span><span id="label-pw-gmvhr">${weights.performance.gmv_hr}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.gmv_hr}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv_hr" />
+                <input type="range" min="5" max="90" value="${weights.performance.gmv_hr}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv_hr" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>CTOR / Conversion</span><span id="label-pw-ctor">${weights.performance.ctor}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.ctor}" class="apple-slider" data-weight-section="performance" data-weight-key="ctor" />
+                <input type="range" min="5" max="90" value="${weights.performance.ctor}" class="apple-slider" data-weight-section="performance" data-weight-key="ctor" />
               </div>
             </div>
 
             <div class="slider-group">
-              <h4 style="font-size:13px;font-weight:600;color:var(--apple-orange)">Qualitative Assessment Weight</h4>
+              <div class="weight-group-heading">
+                <h4 style="color:var(--apple-orange)">Qualitative Assessment Weight</h4>
+                <span class="weight-total-badge">Linked · 100%</span>
+              </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Call To Action (CTA)</span><span id="label-aw-cta">${weights.assessment.cta}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.cta}" class="apple-slider" data-weight-section="assessment" data-weight-key="cta" />
+                <input type="range" min="5" max="85" value="${weights.assessment.cta}" class="apple-slider" data-weight-section="assessment" data-weight-key="cta" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Product Pinning (Pin)</span><span id="label-aw-pin">${weights.assessment.pin}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.pin}" class="apple-slider" data-weight-section="assessment" data-weight-key="pin" />
+                <input type="range" min="5" max="85" value="${weights.assessment.pin}" class="apple-slider" data-weight-section="assessment" data-weight-key="pin" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Discipline & Punctuality</span><span id="label-aw-disc">${weights.assessment.discipline}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.discipline}" class="apple-slider" data-weight-section="assessment" data-weight-key="discipline" />
+                <input type="range" min="5" max="85" value="${weights.assessment.discipline}" class="apple-slider" data-weight-section="assessment" data-weight-key="discipline" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Grooming & Presentation</span><span id="label-aw-groom">${weights.assessment.grooming}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.grooming}" class="apple-slider" data-weight-section="assessment" data-weight-key="grooming" />
+                <input type="range" min="5" max="85" value="${weights.assessment.grooming}" class="apple-slider" data-weight-section="assessment" data-weight-key="grooming" />
               </div>
             </div>
           </div>
@@ -328,33 +337,72 @@
           </div>
         </div>
       `;
+      requestAnimationFrame(() => {
+        this.refreshWeightControls('overall');
+        this.refreshWeightControls('performance');
+        this.refreshWeightControls('assessment');
+      });
     },
+
 
     filterReviewsByReviewer(reviewerName) {
       this.assessmentFilterReviewer = reviewerName;
       this.renderCurrentView();
     },
 
+    refreshWeightControls(group) {
+      const labelIds = {
+        overall: {
+          performance: 'label-w-perf',
+          assessment: 'label-w-assess'
+        },
+        performance: {
+          gmv: 'label-pw-gmv',
+          gmv_hr: 'label-pw-gmvhr',
+          ctor: 'label-pw-ctor'
+        },
+        assessment: {
+          cta: 'label-aw-cta',
+          pin: 'label-aw-pin',
+          discipline: 'label-aw-disc',
+          grooming: 'label-aw-groom'
+        }
+      };
+
+      const values = Scoring.weights[group] || {};
+      Object.entries(labelIds[group] || {}).forEach(([key, labelId]) => {
+        const value = Number(values[key] || 0);
+        const label = document.getElementById(labelId);
+        const slider = document.querySelector(
+          `[data-weight-section="${group}"][data-weight-key="${key}"]`
+        );
+
+        if (label) label.textContent = value + '%';
+        if (slider) {
+          slider.value = value;
+          const min = Number(slider.min || 0);
+          const max = Number(slider.max || 100);
+          const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+          slider.style.setProperty('--slider-progress', `${Math.max(0, Math.min(100, progress))}%`);
+        }
+      });
+    },
+
     onWeightChange(group, key, val) {
-      val = parseInt(val, 10);
-      if (group === 'overall') {
-        Scoring.weights.overall.performance = val;
-        Scoring.weights.overall.assessment = 100 - val;
-        document.getElementById('label-w-perf').textContent = val + '%';
-        document.getElementById('label-w-assess').textContent = (100 - val) + '%';
-      } else {
-        Scoring.weights[group][key] = val;
-        const lbl = document.getElementById(`label-${group === 'performance' ? 'pw' : 'aw'}-${key}`);
-        if (lbl) lbl.textContent = val + '%';
-      }
+      Scoring.rebalanceWeightGroup(group, key, val);
       Scoring.saveWeights(Scoring.weights);
+      this.refreshWeightControls(group);
+    },
+
+    commitWeightChange() {
+      window.AppStore?.invalidate?.();
       this.renderCurrentView();
     },
 
     resetDefaultWeights() {
       Scoring.weights = {
         overall: { performance: 70, assessment: 30 },
-        performance: { gmv: 30, gmv_hr: 25, ctor: 20, views: 15, sold_qty: 10 },
+        performance: { gmv: 40, gmv_hr: 33, ctor: 27, views: 0, sold_qty: 0 },
         assessment: { cta: 30, pin: 25, discipline: 25, grooming: 20 }
       };
       Scoring.saveWeights(Scoring.weights);
