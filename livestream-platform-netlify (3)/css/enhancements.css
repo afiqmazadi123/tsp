@@ -2182,3 +2182,230 @@ body.auth-pending > .ambient-glow {
     width: 58px;
   }
 }
+
+
+/* ==========================================================================
+   Twice-monthly assessment cycles
+   ========================================================================== */
+
+.assessment-period-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(135deg, rgba(0,113,227,.08), rgba(191,90,242,.06)),
+    var(--bg-card);
+}
+
+.assessment-period-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--apple-cyan);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+.assessment-period-title {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.assessment-period-panel p {
+  margin-top: 4px;
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+}
+
+.assessment-period-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.assessment-cycle-toggle {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+}
+
+.assessment-cycle-toggle button {
+  min-width: 105px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: var(--transition-apple);
+}
+
+.assessment-cycle-toggle button small {
+  display: block;
+  margin-top: 1px;
+  color: var(--text-tertiary);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.assessment-cycle-toggle button.active {
+  background: var(--apple-blue);
+  color: #fff;
+  box-shadow: 0 3px 10px var(--apple-blue-glow);
+}
+
+.assessment-cycle-toggle button.active small {
+  color: rgba(255,255,255,.72);
+}
+
+.assessment-cycle-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.assessment-cycle-badge.mid {
+  background: rgba(0,113,227,.12);
+  color: var(--apple-cyan);
+}
+
+.assessment-cycle-badge.end {
+  background: rgba(191,90,242,.12);
+  color: var(--apple-purple);
+}
+
+.assessment-reviewer-lock {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: rgba(255,255,255,.035);
+}
+
+.assessment-reviewer-lock > div:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.assessment-reviewer-lock strong {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.assessment-reviewer-lock span {
+  margin-top: 1px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.pic-average-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pic-average-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 11px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: rgba(255,255,255,.025);
+}
+
+.pic-average-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 125px;
+}
+
+.pic-average-row > div:first-child strong {
+  color: var(--text-primary);
+  font-size: 11.5px;
+}
+
+.pic-average-row > div:first-child span {
+  color: var(--text-tertiary);
+  font-size: 9.5px;
+}
+
+.pic-average-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.pic-average-metrics strong {
+  color: var(--apple-purple);
+}
+
+[data-theme="light"] .assessment-period-panel {
+  background:
+    linear-gradient(135deg, rgba(0,113,227,.05), rgba(191,90,242,.04)),
+    #fff;
+}
+
+[data-theme="light"] .assessment-cycle-toggle,
+[data-theme="light"] .assessment-reviewer-lock,
+[data-theme="light"] .pic-average-row {
+  background: rgba(0,0,0,.025);
+}
+
+@media (max-width: 780px) {
+  .assessment-period-panel,
+  .assessment-period-controls,
+  .pic-average-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assessment-period-controls .select-filter {
+    width: 100%;
+  }
+
+  .assessment-cycle-toggle {
+    width: 100%;
+  }
+
+  .assessment-cycle-toggle button {
+    flex: 1;
+  }
+
+  .pic-average-metrics {
+    justify-content: flex-start;
+  }
+}
