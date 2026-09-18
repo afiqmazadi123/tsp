@@ -12,6 +12,7 @@
   const guardedViews = {
     payroll: ['canApprovePayroll'],
     assessment: ['canGrade'],
+    'creator-reports': ['canApprovePayroll', 'canManageRates', 'canManageAccounts'],
     settings: ['canManageAccounts']
   };
 
@@ -205,6 +206,9 @@
   wrap('deleteReview', ['canGrade'], 'Your account cannot delete host assessments.');
   wrap('onWeightChange', ['canEditWeights'], 'Only senior reviewers can change scoring weights.');
   wrap('resetDefaultWeights', ['canEditWeights'], 'Only senior reviewers can reset scoring weights.');
+  wrap('openBrandTargetSettings', ['canManageRates', 'canManageAccounts'], 'Only Rates or Admin users can change master brand targets.');
+  wrap('openCreatorTargetOverride', ['canManageRates', 'canManageAccounts'], 'Only Rates or Admin users can override monthly creator targets.');
+  wrap('applyCreatorTargetRecommendations', ['canManageRates', 'canManageAccounts'], 'Only Rates or Admin users can apply next-month target recommendations.');
 
   ['connectSupabase', 'pullSupabaseData', 'pushSupabaseData', 'disconnectSupabase'].forEach(method => {
     wrap(method, ['canManageAccounts'], 'Only account administrators can manage cloud synchronization.');
@@ -214,6 +218,7 @@
     const navRules = {
       payroll: ['canApprovePayroll'],
       assessment: ['canGrade'],
+      'creator-reports': ['canApprovePayroll', 'canManageRates', 'canManageAccounts'],
       admin: ['canManageAccounts', 'canManageRates'],
       settings: ['canManageAccounts']
     };

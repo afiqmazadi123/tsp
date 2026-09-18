@@ -102,6 +102,7 @@
 
     switchView(viewName) {
       this.currentView = viewName;
+      document.body.dataset.currentView = viewName;
 
       document.querySelectorAll('.nav-item').forEach(el => {
         if (el.getAttribute('data-view') === viewName) {
@@ -118,6 +119,7 @@
         brands: 'Brands',
         payroll: 'Payroll',
         assessment: 'Assessments',
+        'creator-reports': 'Creator Monthly Report',
         reports: 'Reports',
         admin: 'Admin',
         settings: 'Settings'
@@ -313,6 +315,9 @@
           case 'assessment':
             this.renderAssessmentView(container, data);
             break;
+          case 'creator-reports':
+            this.renderCreatorReportsView(container, data);
+            break;
           case 'reports':
             this.renderReportsView(container, data);
             break;
@@ -357,6 +362,7 @@
       // This also drops stale LocalStorage-only accounts from the legacy PIN system.
       await window.SupabaseEngine?.syncDown?.(false, false);
       await window.DataLoader.load();
+      await window.CreatorReports?.load?.();
       window.AuthGate?.unlockApp?.();
       App.init();
     } catch (err) {
