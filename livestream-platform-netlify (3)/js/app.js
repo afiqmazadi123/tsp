@@ -333,12 +333,27 @@
 
   window.App = App;
   document.addEventListener('DOMContentLoaded', async () => {
-    if (window.DataLoader?.ready) await window.DataLoader.ready;
-    if (window.Accounts?.ready) await window.Accounts.ready;
-    if (window.SupabaseAuth?.ready) await window.SupabaseAuth.ready;
-    App.init();
-    if (window.DataLoader?.error) {
-      window.UI?.toast?.('Bundled session data could not be loaded.', 'error', { duration: 0 });
+    try {
+      if (window.Accounts?.ready) await window.Accounts.ready;
+      if (window.SupabaseAuth?.ready) await window.SupabaseAuth.ready;
+
+      if (!window.SupabaseAuth?.isAuthenticated?.()) {
+        window.AuthGate?.showLogin?.();
+        return;
+      }
+
+      const mapped = await window.SupabaseAuth.bindLocalAccount();
+      if (!mapped) {
+        window.AuthGate?.showUnauthorized?.();
+        return;
+      }
+
+      await window.DataLoader.load();
+      window.AuthGate?.unlockApp?.();
+      App.init();
+    } catch (err) {
+      console.error('Secure application boot failed:', err);
+      window.AuthGate?.showError?.(err?.message || String(err));
     }
   });
 })(window);
