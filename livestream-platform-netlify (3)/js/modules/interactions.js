@@ -59,6 +59,7 @@
                   <span>👤 ${r.reviewer}</span>
                   <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;">${r.date}</span>
+                    <span class="assessment-cycle-badge ${r.cycle === 'end_month' ? 'end' : 'mid'}">${Scoring.getCycleLabel(r.cycle || Scoring.getCycleForDate(r.date))}</span>
                     <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">✏️ Edit</button>
                     <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">✕</button>
                   </div>
@@ -123,17 +124,31 @@
       const reviewerAccounts = Accounts.getReviewerAccounts();
       const currentAcc = Accounts.getCurrentAccount();
 
+      const assessmentMonth = this.assessmentMonth || Scoring.getCurrentMonth();
+      const assessmentCycle = this.assessmentCycle || Scoring.getCycleForDate();
+      const cycleLabel = Scoring.getCycleLabel(assessmentCycle);
+      const cycleDateLabel = Scoring.getCycleDateLabel(assessmentMonth, assessmentCycle);
+      const monthLabel = new Date(`${assessmentMonth}-01T12:00:00`).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+      });
+
       let existingReview = null;
       if (preselectedHost) {
-        existingReview = Scoring.getHostReviewByReviewer(preselectedHost, currentAcc.name);
+        existingReview = Scoring.getHostReviewByReviewer(
+          preselectedHost,
+          currentAcc.name,
+          assessmentMonth,
+          assessmentCycle
+        );
       }
 
       container.innerHTML = `
         <h3 style="font-size:18px;font-weight:700;margin-bottom:6px;">
-          ${existingReview ? 'Update Assessment for ' + preselectedHost : 'Submit Reviewer Assessment'}
+          ${existingReview ? 'Update ' + cycleLabel + ' Assessment for ' + preselectedHost : 'Submit ' + cycleLabel + ' Assessment'}
         </h3>
         <p class="muted-copy">
-          Scale 1.0 (Low) to 5.0 (Exceptional). Scoring will automatically average across all reviewers.
+          ${monthLabel} · ${cycleLabel} (day ${cycleDateLabel}). Each PIC can submit one assessment per host per cycle. Monthly scoring averages both cycles per PIC, then averages all PICs equally.
         </p>
         <form id="add-review-form" class="form-stack">
           <div>
@@ -144,10 +159,14 @@
           </div>
 
           <div>
-            <label class="form-label">Reviewer (Logged In Account)</label>
-            <select id="rev-reviewer-select" class="select-filter full-width">
-              ${reviewerAccounts.map(r => `<option value="${r.name}" ${r.name.toLowerCase() === currentAcc.name.toLowerCase() ? 'selected' : ''}>${r.name} (${r.role})</option>`).join('')}
-            </select>
+            <label class="form-label">Reviewer (Secure Identity)</label>
+            <div class="assessment-reviewer-lock">
+              <div class="user-avatar" style="background:${currentAcc.avatarColor};width:30px;height:30px;font-size:11px;">${currentAcc.initials}</div>
+              <div>
+                <strong>${currentAcc.name}</strong>
+                <span>${currentAcc.role} · identity locked by Supabase Auth</span>
+              </div>
+            </div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -196,14 +215,25 @@
       document.getElementById('add-review-form').onsubmit = (e) => {
         e.preventDefault();
         const host = document.getElementById('rev-host-select').value;
-        const reviewer = document.getElementById('rev-reviewer-select').value;
+        const reviewer = currentAcc.name;
         const cta = parseFloat(document.getElementById('rev-cta').value);
         const pin = parseFloat(document.getElementById('rev-pin').value);
         const discipline = parseFloat(document.getElementById('rev-disc').value);
         const grooming = parseFloat(document.getElementById('rev-groom').value);
         const notes = document.getElementById('rev-notes').value || 'Good overall performance.';
 
-        Scoring.addAssessment({ host, reviewer, cta, pin, discipline, grooming, notes });
+        Scoring.addAssessment({
+          host,
+          reviewer,
+          reviewer_account_id: currentAcc.id,
+          assessment_month: `${assessmentMonth}-01`,
+          cycle: assessmentCycle,
+          cta,
+          pin,
+          discipline,
+          grooming,
+          notes
+        });
         this.closeModal();
         this.renderCurrentView();
         if (this.selectedHostForDrawer) this.openHostDrawer(this.selectedHostForDrawer);
@@ -213,8 +243,13 @@
     },
 
     onReviewHostChange(hostName) {
-      const reviewer = document.getElementById('rev-reviewer-select').value;
-      const existing = Scoring.getHostReviewByReviewer(hostName, reviewer);
+      const currentAcc = Accounts.getCurrentAccount();
+      const existing = Scoring.getHostReviewByReviewer(
+        hostName,
+        currentAcc.name,
+        this.assessmentMonth || Scoring.getCurrentMonth(),
+        this.assessmentCycle || Scoring.getCycleForDate()
+      );
       if (existing) {
         document.getElementById('rev-cta').value = existing.cta;
         document.getElementById('val-preview-cta').textContent = existing.cta;
@@ -225,6 +260,17 @@
         document.getElementById('rev-groom').value = existing.grooming;
         document.getElementById('val-preview-groom').textContent = existing.grooming;
         document.getElementById('rev-notes').value = existing.notes || '';
+      } else {
+        const defaults = { cta: 4.8, pin: 4.7, discipline: 5.0, grooming: 4.9 };
+        ['cta', 'pin', 'disc', 'groom'].forEach(key => {
+          const sourceKey = key === 'disc' ? 'discipline' : key;
+          const input = document.getElementById(`rev-${key}`);
+          const preview = document.getElementById(`val-preview-${key}`);
+          if (input) input.value = defaults[sourceKey];
+          if (preview) preview.textContent = defaults[sourceKey];
+        });
+        const notes = document.getElementById('rev-notes');
+        if (notes) notes.value = '';
       }
     },
 
@@ -245,7 +291,8 @@
           <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${review.id}" title="Delete Review">Delete Review</button>
         </div>
         <p class="muted-copy">
-          Reviewed by <strong>${review.reviewer}</strong> on ${review.date}
+          Reviewed by <strong>${review.reviewer}</strong> on ${review.date} ·
+          <span class="assessment-cycle-badge ${review.cycle === 'end_month' ? 'end' : 'mid'}">${Scoring.getCycleLabel(review.cycle || Scoring.getCycleForDate(review.date))}</span>
         </p>
 
         <form id="edit-review-form" class="form-stack">
