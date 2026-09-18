@@ -480,7 +480,7 @@
       const dropZone = document.getElementById('drop-zone');
       const fileInput = document.getElementById('file-input');
 
-      dropZone.onclick = () => fileInput.click();
+      dropZone.addEventListener('click', () => fileInput.click());
       dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--apple-blue)'; };
       dropZone.ondragleave = () => { dropZone.style.borderColor = 'var(--border-subtle)'; };
       dropZone.ondrop = (e) => {
