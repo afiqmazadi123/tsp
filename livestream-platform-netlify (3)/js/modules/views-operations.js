@@ -170,14 +170,14 @@
                   <span>Quantitative Performance</span>
                   <span id="label-w-perf">${weights.overall.performance}%</span>
                 </div>
-                <input type="range" min="10" max="90" value="${weights.overall.performance}" class="apple-slider" id="slider-w-perf" oninput="App.onWeightChange('overall', 'performance', this.value)" />
+                <input type="range" min="10" max="90" value="${weights.overall.performance}" class="apple-slider" id="slider-w-perf" data-weight-section="overall" data-weight-key="performance" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header">
                   <span>Qualitative Assessment</span>
                   <span id="label-w-assess">${weights.overall.assessment}%</span>
                 </div>
-                <input type="range" min="10" max="90" value="${weights.overall.assessment}" class="apple-slider" id="slider-w-assess" oninput="App.onWeightChange('overall', 'assessment', this.value)" />
+                <input type="range" min="10" max="90" value="${weights.overall.assessment}" class="apple-slider" id="slider-w-assess" data-weight-section="overall" data-weight-key="assessment" />
               </div>
             </div>
 
@@ -185,15 +185,15 @@
               <h4 style="font-size:13px;font-weight:600;color:var(--apple-purple)">Performance Metrics Weight</h4>
               <div class="slider-item">
                 <div class="slider-item-header"><span>GMV Volume</span><span id="label-pw-gmv">${weights.performance.gmv}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.gmv}" class="apple-slider" oninput="App.onWeightChange('performance', 'gmv', this.value)" />
+                <input type="range" min="5" max="60" value="${weights.performance.gmv}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>GMV / Hour Productivity</span><span id="label-pw-gmvhr">${weights.performance.gmv_hr}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.gmv_hr}" class="apple-slider" oninput="App.onWeightChange('performance', 'gmv_hr', this.value)" />
+                <input type="range" min="5" max="60" value="${weights.performance.gmv_hr}" class="apple-slider" data-weight-section="performance" data-weight-key="gmv_hr" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>CTOR / Conversion</span><span id="label-pw-ctor">${weights.performance.ctor}%</span></div>
-                <input type="range" min="5" max="60" value="${weights.performance.ctor}" class="apple-slider" oninput="App.onWeightChange('performance', 'ctor', this.value)" />
+                <input type="range" min="5" max="60" value="${weights.performance.ctor}" class="apple-slider" data-weight-section="performance" data-weight-key="ctor" />
               </div>
             </div>
 
@@ -201,19 +201,19 @@
               <h4 style="font-size:13px;font-weight:600;color:var(--apple-orange)">Qualitative Assessment Weight</h4>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Call To Action (CTA)</span><span id="label-aw-cta">${weights.assessment.cta}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.cta}" class="apple-slider" oninput="App.onWeightChange('assessment', 'cta', this.value)" />
+                <input type="range" min="5" max="50" value="${weights.assessment.cta}" class="apple-slider" data-weight-section="assessment" data-weight-key="cta" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Product Pinning (Pin)</span><span id="label-aw-pin">${weights.assessment.pin}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.pin}" class="apple-slider" oninput="App.onWeightChange('assessment', 'pin', this.value)" />
+                <input type="range" min="5" max="50" value="${weights.assessment.pin}" class="apple-slider" data-weight-section="assessment" data-weight-key="pin" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Discipline & Punctuality</span><span id="label-aw-disc">${weights.assessment.discipline}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.discipline}" class="apple-slider" oninput="App.onWeightChange('assessment', 'discipline', this.value)" />
+                <input type="range" min="5" max="50" value="${weights.assessment.discipline}" class="apple-slider" data-weight-section="assessment" data-weight-key="discipline" />
               </div>
               <div class="slider-item">
                 <div class="slider-item-header"><span>Grooming & Presentation</span><span id="label-aw-groom">${weights.assessment.grooming}%</span></div>
-                <input type="range" min="5" max="50" value="${weights.assessment.grooming}" class="apple-slider" oninput="App.onWeightChange('assessment', 'grooming', this.value)" />
+                <input type="range" min="5" max="50" value="${weights.assessment.grooming}" class="apple-slider" data-weight-section="assessment" data-weight-key="grooming" />
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@
             </div>
             <div class="inline-group">
               <label style="font-size:12px;color:var(--text-tertiary)">Filter Reviewer:</label>
-              <select class="select-filter" onchange="App.filterReviewsByReviewer(this.value)">
+              <select class="select-filter" data-reviewer-filter="true">
                 <option value="all" ${this.assessmentFilterReviewer === 'all' ? 'selected' : ''}>All Reviewers (${allReviews.length})</option>
                 ${Accounts.getReviewerAccounts().map(a => `
                   <option value="${a.name}" ${this.assessmentFilterReviewer.toLowerCase() === a.name.toLowerCase() ? 'selected' : ''}>${a.name}</option>
