@@ -454,3 +454,83 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Phase 2: permission and credential dialogs */
+.permission-denied,
+.secure-pin-dialog {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.permission-denied-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.06);
+  font-size: 21px;
+}
+
+.permission-denied h3,
+.secure-pin-dialog h3 {
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+
+.permission-denied p,
+.secure-pin-dialog > p {
+  max-width: 390px;
+  margin: 6px auto 16px;
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.secure-pin-avatar {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  font-size: 18px;
+}
+
+.secure-pin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.secure-pin-input {
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: .2em;
+  padding: 9px 10px;
+}
+
+.secure-pin-error {
+  color: var(--apple-red);
+  font-size: 11.5px;
+}
+
+.secure-pin-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+button:disabled,
+.apple-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+[hidden] {
+  display: none !important;
+}
