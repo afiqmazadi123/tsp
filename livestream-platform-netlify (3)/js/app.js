@@ -107,15 +107,15 @@
       });
 
       const titles = {
-        dashboard: 'Executive Overview',
-        analytics: 'Live Session Analytics',
-        hosts: 'Host Management & Raport',
-        brands: 'Brand Intelligence & Pitching',
-        payroll: 'Payroll Verification',
-        assessment: 'Reviewer Assessment & Scoring Engine',
-        reports: 'Intelligence Report Generator',
-        admin: 'Admin Control Panel (Rates & Accounts)',
-        settings: 'Configuration & Data Sync'
+        dashboard: 'Dashboard',
+        analytics: 'Live Analytics',
+        hosts: 'Hosts',
+        brands: 'Brands',
+        payroll: 'Payroll',
+        assessment: 'Assessments',
+        reports: 'Reports',
+        admin: 'Admin',
+        settings: 'Settings'
       };
       const titleEl = document.getElementById('current-page-title');
       if (titleEl) titleEl.textContent = titles[viewName] || 'Dashboard';
@@ -188,18 +188,39 @@
 
     bindThemeToggle() {
       const toggle = document.getElementById('theme-toggle-btn');
+
+      const applyTheme = (theme, persist = true) => {
+        const normalized = theme === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', normalized);
+        document.documentElement.style.colorScheme = normalized;
+        if (persist) localStorage.setItem('fyc_theme', normalized);
+
+        if (toggle) {
+          const switchingTo = normalized === 'dark' ? 'light' : 'dark';
+          toggle.setAttribute('aria-label', `Switch to ${switchingTo} mode`);
+          toggle.setAttribute('aria-pressed', normalized === 'dark' ? 'true' : 'false');
+          toggle.title = `Switch to ${switchingTo} mode`;
+          toggle.innerHTML = normalized === 'dark'
+            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        }
+
+        window.dispatchEvent(new CustomEvent('fyc:themechange', { detail: { theme: normalized } }));
+      };
+
+      const initial = document.documentElement.getAttribute('data-theme')
+        || localStorage.getItem('fyc_theme')
+        || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(initial, false);
+
       if (toggle) {
         toggle.addEventListener('click', () => {
-          const current = document.documentElement.getAttribute('data-theme') || 'dark';
+          const current = document.documentElement.getAttribute('data-theme') || 'light';
           const next = current === 'dark' ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-theme', next);
-          localStorage.setItem('fyc_theme', next);
+          applyTheme(next, true);
           this.renderCurrentView();
         });
       }
-
-      const savedTheme = localStorage.getItem('fyc_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
     },
 
     bindModals() {

@@ -138,7 +138,7 @@
         <form id="add-review-form" class="form-stack">
           <div>
             <label class="form-label">Select Creator</label>
-            <select id="rev-host-select" class="select-filter full-width" onchange="App.onReviewHostChange(this.value)">
+            <select id="rev-host-select" class="select-filter full-width" data-review-host-select="true">
               ${hosts.map(h => `<option value="${h.name}" ${h.name.toLowerCase() === preselectedHost.toLowerCase() ? 'selected' : ''}>${h.name}</option>`).join('')}
             </select>
           </div>
@@ -156,28 +156,28 @@
                 <span>Call To Action (CTA)</span>
                 <strong id="val-preview-cta">${existingReview ? existingReview.cta : '4.8'}</strong>
               </div>
-              <input type="range" id="rev-cta" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.cta : '4.8'}" class="apple-slider" oninput="document.getElementById('val-preview-cta').textContent=this.value" />
+              <input type="range" id="rev-cta" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.cta : '4.8'}" class="apple-slider" data-preview-target="val-preview-cta" />
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-bottom:4px;">
                 <span>Product Pinning (Pin)</span>
                 <strong id="val-preview-pin">${existingReview ? existingReview.pin : '4.7'}</strong>
               </div>
-              <input type="range" id="rev-pin" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.pin : '4.7'}" class="apple-slider" oninput="document.getElementById('val-preview-pin').textContent=this.value" />
+              <input type="range" id="rev-pin" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.pin : '4.7'}" class="apple-slider" data-preview-target="val-preview-pin" />
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-bottom:4px;">
                 <span>Discipline & Punctuality</span>
                 <strong id="val-preview-disc">${existingReview ? existingReview.discipline : '5.0'}</strong>
               </div>
-              <input type="range" id="rev-disc" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.discipline : '5.0'}" class="apple-slider" oninput="document.getElementById('val-preview-disc').textContent=this.value" />
+              <input type="range" id="rev-disc" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.discipline : '5.0'}" class="apple-slider" data-preview-target="val-preview-disc" />
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-bottom:4px;">
                 <span>Grooming & Presentation</span>
                 <strong id="val-preview-groom">${existingReview ? existingReview.grooming : '4.9'}</strong>
               </div>
-              <input type="range" id="rev-groom" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.grooming : '4.9'}" class="apple-slider" oninput="document.getElementById('val-preview-groom').textContent=this.value" />
+              <input type="range" id="rev-groom" min="1.0" max="5.0" step="0.1" value="${existingReview ? existingReview.grooming : '4.9'}" class="apple-slider" data-preview-target="val-preview-groom" />
             </div>
           </div>
 
@@ -255,7 +255,7 @@
                 <span>Call To Action (CTA)</span>
                 <strong id="edit-val-cta">${review.cta}</strong>
               </div>
-              <input type="range" id="edit-cta" min="1.0" max="5.0" step="0.1" value="${review.cta}" class="apple-slider" oninput="document.getElementById('edit-val-cta').textContent=this.value" />
+              <input type="range" id="edit-cta" min="1.0" max="5.0" step="0.1" value="${review.cta}" class="apple-slider" data-preview-target="edit-val-cta" />
             </div>
 
             <div>
@@ -263,7 +263,7 @@
                 <span>Product Pinning (Pin)</span>
                 <strong id="edit-val-pin">${review.pin}</strong>
               </div>
-              <input type="range" id="edit-pin" min="1.0" max="5.0" step="0.1" value="${review.pin}" class="apple-slider" oninput="document.getElementById('edit-val-pin').textContent=this.value" />
+              <input type="range" id="edit-pin" min="1.0" max="5.0" step="0.1" value="${review.pin}" class="apple-slider" data-preview-target="edit-val-pin" />
             </div>
 
             <div>
@@ -271,7 +271,7 @@
                 <span>Discipline & Punctuality</span>
                 <strong id="edit-val-disc">${review.discipline}</strong>
               </div>
-              <input type="range" id="edit-disc" min="1.0" max="5.0" step="0.1" value="${review.discipline}" class="apple-slider" oninput="document.getElementById('edit-val-disc').textContent=this.value" />
+              <input type="range" id="edit-disc" min="1.0" max="5.0" step="0.1" value="${review.discipline}" class="apple-slider" data-preview-target="edit-val-disc" />
             </div>
 
             <div>
@@ -279,7 +279,7 @@
                 <span>Grooming & Presentation</span>
                 <strong id="edit-val-groom">${review.grooming}</strong>
               </div>
-              <input type="range" id="edit-groom" min="1.0" max="5.0" step="0.1" value="${review.grooming}" class="apple-slider" oninput="document.getElementById('edit-val-groom').textContent=this.value" />
+              <input type="range" id="edit-groom" min="1.0" max="5.0" step="0.1" value="${review.grooming}" class="apple-slider" data-preview-target="edit-val-groom" />
             </div>
           </div>
 

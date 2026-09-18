@@ -126,6 +126,14 @@
     });
 
     canvas._chartPoints = points;
+    canvas._chartHitRegions = points.map((point, index) => ({
+      type: 'point',
+      x: point.x,
+      y: point.y,
+      radius: 18,
+      index,
+      data: point.data
+    }));
   }
 
   // --- DONUT / PIE CHART ---
@@ -149,8 +157,9 @@
     ctx.clearRect(0, 0, width, height);
 
     let startAngle = -Math.PI / 2;
+    const hitRegions = [];
 
-    data.forEach(d => {
+    data.forEach((d, index) => {
       const sliceAngle = ((d.value || 0) / total) * 2 * Math.PI;
       const endAngle = startAngle + sliceAngle;
 
@@ -166,6 +175,18 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
+      hitRegions.push({
+        type: 'donut',
+        index,
+        data: d,
+        centerX,
+        centerY,
+        innerRadius,
+        outerRadius: radius,
+        startAngle,
+        endAngle
+      });
+
       startAngle = endAngle;
     });
 
@@ -179,6 +200,8 @@
     ctx.font = '11px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
     ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)';
     ctx.fillText(options.centerSub || 'Total GMV', centerX, centerY + 12);
+
+    canvas._chartHitRegions = hitRegions;
   }
 
   // --- GROUPED / COMPARISON BAR CHART ---
@@ -226,6 +249,7 @@
     const catWidth = chartW / categories.length;
     const groupPadding = catWidth * 0.2;
     const barWidth = (catWidth - groupPadding * 2) / series.length;
+    const hitRegions = [];
 
     categories.forEach((cat, catIdx) => {
       const groupX = padding.left + catIdx * catWidth + groupPadding;
@@ -248,12 +272,28 @@
 
         ctx.fillStyle = s.color || '#0071e3';
         ctx.fill();
+
+        hitRegions.push({
+          type: 'bar',
+          category: cat,
+          categoryIndex: catIdx,
+          seriesName: s.name,
+          seriesIndex: sIdx,
+          value: val,
+          x: barX,
+          y: barY,
+          width: barWidth,
+          height: Math.max(barH, 4),
+          color: s.color || '#0071e3'
+        });
       });
 
       ctx.textAlign = 'center';
       ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)';
       ctx.fillText(cat, padding.left + catIdx * catWidth + catWidth / 2, height - padding.bottom + 18);
     });
+
+    canvas._chartHitRegions = hitRegions;
   }
 
   // --- RADAR / SPIDER CHART ---
@@ -330,11 +370,69 @@
     ctx.stroke();
   }
 
+  function normalizeAngle(angle) {
+    let value = angle % (Math.PI * 2);
+    if (value < 0) value += Math.PI * 2;
+    return value;
+  }
+
+  function angleWithin(angle, start, end) {
+    const a = normalizeAngle(angle);
+    const s = normalizeAngle(start);
+    const e = normalizeAngle(end);
+    if (s <= e) return a >= s && a <= e;
+    return a >= s || a <= e;
+  }
+
+  function getHitAt(canvas, x, y) {
+    if (!canvas) return null;
+    const regions = canvas._chartHitRegions || [];
+
+    for (const region of regions) {
+      if (region.type === 'bar') {
+        if (x >= region.x && x <= region.x + region.width && y >= region.y && y <= region.y + region.height) {
+          return region;
+        }
+      }
+
+      if (region.type === 'donut') {
+        const dx = x - region.centerX;
+        const dy = y - region.centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < region.innerRadius || distance > region.outerRadius) continue;
+        if (angleWithin(Math.atan2(dy, dx), region.startAngle, region.endAngle)) return region;
+      }
+
+      if (region.type === 'point') {
+        const dx = x - region.x;
+        const dy = y - region.y;
+        if (Math.sqrt(dx * dx + dy * dy) <= region.radius) return region;
+      }
+    }
+
+    if (canvas._chartPoints?.length) {
+      const points = canvas._chartPoints;
+      let nearest = points[0];
+      let distance = Math.abs(points[0].x - x);
+      points.forEach(point => {
+        const next = Math.abs(point.x - x);
+        if (next < distance) {
+          nearest = point;
+          distance = next;
+        }
+      });
+      return { type: 'point', x: nearest.x, y: nearest.y, data: nearest.data };
+    }
+
+    return null;
+  }
+
   window.AppleCharts = {
     drawAreaChart,
     drawDonutChart,
     drawBarChart,
     drawRadarChart,
+    getHitAt,
     formatIDR,
     formatIDRShort
   };
