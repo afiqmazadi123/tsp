@@ -53,9 +53,10 @@
     },
 
     getHeaders(prefer = 'return=representation') {
+      const bearer = window.SupabaseAuth?.getAccessToken?.() || this.anonKey;
       return {
         apikey: this.anonKey,
-        Authorization: `Bearer ${this.anonKey}`,
+        Authorization: `Bearer ${bearer}`,
         'Content-Type': 'application/json',
         Prefer: prefer
       };
@@ -130,6 +131,7 @@
           if (migrated) {
             await Promise.all(window.Accounts.getAccounts().map(account => this.saveAccount(account)));
           }
+          await window.SupabaseAuth?.bindLocalAccount?.();
         }
 
         if (Array.isArray(assessments) && assessments.length && window.Scoring) {
