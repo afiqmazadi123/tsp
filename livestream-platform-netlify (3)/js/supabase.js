@@ -173,7 +173,7 @@
           await window.SupabaseAuth?.bindLocalAccount?.();
         }
 
-        if (Array.isArray(assessments) && assessments.length && window.Scoring) {
+        if (Array.isArray(assessments) && window.Scoring) {
           window.Scoring.assessments = assessments;
           localStorage.setItem('fyc_assessments', JSON.stringify(assessments));
         }
