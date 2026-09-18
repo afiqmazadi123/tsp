@@ -144,6 +144,50 @@
     rows.forEach(row => tbody.appendChild(row));
   }
 
+  function confirmAction(message, options = {}) {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'confirm-overlay';
+      overlay.innerHTML = `
+        <div class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+          <div class="confirm-icon" aria-hidden="true">${options.icon || '!'}</div>
+          <h3 id="confirm-title">${options.title || 'Confirm action'}</h3>
+          <p class="confirm-message"></p>
+          <div class="confirm-actions">
+            <button type="button" class="apple-btn apple-btn-secondary" data-confirm-cancel>${options.cancelLabel || 'Cancel'}</button>
+            <button type="button" class="apple-btn ${options.danger === false ? 'apple-btn-primary' : 'danger-btn'}" data-confirm-ok>${options.confirmLabel || 'Confirm'}</button>
+          </div>
+        </div>
+      `;
+
+      overlay.querySelector('.confirm-message').textContent = String(message || '');
+      document.body.appendChild(overlay);
+      const cancel = overlay.querySelector('[data-confirm-cancel]');
+      const ok = overlay.querySelector('[data-confirm-ok]');
+
+      const finish = value => {
+        overlay.classList.add('leaving');
+        window.setTimeout(() => overlay.remove(), 140);
+        document.removeEventListener('keydown', onKeydown);
+        resolve(value);
+      };
+      const onKeydown = event => {
+        if (event.key === 'Escape') finish(false);
+      };
+
+      cancel.addEventListener('click', () => finish(false));
+      ok.addEventListener('click', () => finish(true));
+      overlay.addEventListener('click', event => {
+        if (event.target === overlay) finish(false);
+      });
+      document.addEventListener('keydown', onKeydown);
+      requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+        ok.focus();
+      });
+    });
+  }
+
   document.addEventListener('click', event => {
     const header = event.target.closest?.('table[data-sortable="true"] thead th');
     if (!header) return;
@@ -156,6 +200,7 @@
     beginBusy,
     endBusy,
     withBusy,
+    confirm: confirmAction,
     sortStaticTable
   };
 })(window, document);
