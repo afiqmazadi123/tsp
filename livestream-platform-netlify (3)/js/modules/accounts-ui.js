@@ -13,59 +13,42 @@
       const container = document.getElementById('modal-inner-content');
       if (!modal || !container) return;
 
-      const accounts = Accounts.getAccounts();
-      const currentAcc = Accounts.getCurrentAccount();
+      if (window.SupabaseAuth?.isAuthenticated?.()) {
+        const currentAcc = Accounts.getCurrentAccount();
+        const authUser = window.SupabaseAuth.getUser?.();
 
-      container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <div>
-            <h3 style="font-size:18px;font-weight:700">Sub-Accounts & Team Switcher</h3>
-            <p style="font-size:12px;color:var(--text-tertiary)">Select an account to log in, grade hosts, verify payroll, or pitch brands</p>
-          </div>
-          <button class="apple-btn apple-btn-primary" style="padding:5px 12px;font-size:12px;" data-app-action="openAddAccountModal">+ New Evaluator</button>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-          ${accounts.map(acc => `
-            <div class="account-item-card ${acc.id === currentAcc.id ? 'active-account' : ''}" data-app-action="requestAccountSwitch" data-app-arg="${acc.id}">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div class="user-avatar" style="background:${acc.avatarColor};width:40px;height:40px;font-size:14px;">
-                  ${acc.initials}
-                </div>
-                <div>
-                  <div style="font-size:14px;font-weight:600;color:var(--text-primary)">
-                    ${acc.name} ${acc.id === currentAcc.id ? '<span style="font-size:10px;color:var(--apple-green);margin-left:6px;">● Logged In</span>' : ''}
-                  </div>
-                  <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
-                    ${acc.role} ${acc.pin ? '<span style="font-size:10px;color:var(--text-tertiary);margin-left:6px;">🔒 PIN Protected</span>' : ''}
-                  </div>
-                  <div style="font-size:10.5px;color:var(--text-tertiary);">
-                    ${acc.description || ''}
-                  </div>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                ${acc.canGrade ? '<span class="tier-badge" style="background:rgba(48,209,88,0.15);color:var(--apple-green)">Evaluator</span>' : ''}
-                ${acc.id !== 'acc_afiq' ? `
-                  <button class="review-action-btn delete" data-app-action="deleteAccount" data-app-arg="${acc.id}" data-stop-propagation="true" title="Delete this sub-account">
-                    ✕
-                  </button>
-                ` : ''}
-                <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11px;">
-                  ${acc.id === currentAcc.id ? 'Current' : 'Switch'}
-                </button>
-              </div>
+        container.innerHTML = `
+          <div class="secure-profile-modal">
+            <div class="user-avatar secure-profile-avatar" style="background:${currentAcc.avatarColor || '#0071e3'}">
+              ${currentAcc.initials || ''}
             </div>
-          `).join('')}
-        </div>
+            <div class="secure-profile-copy">
+              <h3>${currentAcc.name}</h3>
+              <p>${currentAcc.role}</p>
+              <span>${authUser?.email || 'Authenticated user'}</span>
+            </div>
+            <div class="secure-profile-status">
+              <span>Authenticated</span>
+              <strong>Supabase Auth + RLS</strong>
+            </div>
+            <div class="secure-profile-actions">
+              ${currentAcc.canManageAccounts ? '<button class="apple-btn apple-btn-secondary" data-app-action="openAdminPanel">Open Admin</button>' : ''}
+              <button class="apple-btn danger-btn" data-app-action="signOutSecureSession">Sign out</button>
+            </div>
+          </div>
+        `;
 
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <button class="apple-btn apple-btn-secondary" data-app-action="openAdminPanel">Open Admin Management Panel</button>
-          <button class="apple-btn apple-btn-secondary" data-app-action="closeModal">Close</button>
-        </div>
-      `;
+        modal.classList.add('active');
+        return;
+      }
 
-      modal.classList.add('active');
+      window.AuthGate?.showLogin?.();
+    },
+
+    async signOutSecureSession() {
+      this.closeModal?.();
+      await window.SupabaseAuth?.signOut?.();
+      window.location.reload();
     },
 
     requestAccountSwitch(targetAccountId) {
