@@ -1,45 +1,110 @@
-# FYC Livestream Performance Intelligence Platform ⚡
+# FYC Live Ops Dashboard ⚡
 
-Platform analitik livestreaming enterprise dengan tampilan modern minimalis ala **Apple Design System**, dirancang khusus untuk Head of Livestreaming, Lead Live Operations, Tim Evaluator, Tim Finance, dan Brand Pitching.
+Dashboard operasional untuk monitoring performa livestream TikTok & Shopee: GMV, live hours, host performance, brand contribution, assessment, payroll, reporting, dan data sync.
 
-Platform ini terhubung ke master data spreadsheet:
-`1mPTvujucuvcoQlnEticjy1QDhiYoguHqk89_ylj44o8` (Tab: `Report`).
-
----
-
-## 📌 Jawaban Pertanyaan & Fitur Baru
-
-### 1. Cara Hapus Sub-Account
-- Buka **Sub-Accounts Switcher** (klik tombol profil di kanan atas topbar atau di footer sidebar), lalu klik ikon **✕** merah di samping sub-account yang ingin dihapus.
-- Atau buka menu baru **Admin Control Panel > Sub-Accounts & PINs**, lalu klik tombol **🗑️** pada akun yang ingin dihapus.
-- *Catatan:* Akun Super Admin utama (`Afiq Mazadi`) terlindungi dari penghapusan tidak sengaja.
-
-### 2. Dimana Sub-Account Tersimpan? (Cloud vs LocalStorage)
-- **Saat ini:** Sebagai *Static Web Application* di Netlify, seluruh data sub-account, password/PIN, penilaian, dan rate card tersimpan di **Browser LocalStorage** perangkat Anda.
-- **Kelebihan:** Super cepat, bekerja 100% offline, gratis tanpa biaya server/database.
-- **Fitur Baru - Backup & Portabilitas:** Di menu **Admin Control Panel > Cloud & Storage Info**, tersedia tombol **"Download Data Backup (JSON)"** dan **"Restore Data Backup"** sehingga Anda bisa memindahkan seluruh data antar komputer dengan sekali klik.
-- **Opsi Cloud Terpusat:** Di tab yang sama tersedia panduan menghubungkan Google Apps Script Web App langsung ke spreadsheet master untuk sinkronisasi otomatis multi-perangkat.
-
-### 3. Fitur Filter Tanggal (Start Date + End Date)
-- Di bagian topbar, pada dropdown tanggal pilih opsi **"Custom Date Range..."**.
-- Dua input tanggal bergaya Apple (**Start Date** dan **End Date**) akan muncul secara otomatis.
-- Mengubah tanggal mulai atau tanggal akhir akan langsung menyaring seluruh 1.798 data live shifts, grafik GMV harian, perbandingan platform, dan raport host secara real-time.
-
-### 4. Admin Control Panel (Rate Host, Sub-Account, Password/PIN)
-Menu baru di sidebar: **Admin Control Panel**:
-- **Host Rate Cards Master**: Kelola tarif per jam (*hourly rate*) untuk seluruh 15 host, simpan alasan kenaikan tarif (*rate adjustment audit trail*), dan pantau estimasi total payout.
-- **Sub-Accounts & Security**:
-  - Kelola hak akses: Evaluator (*Can Grade*), Finance (*Can Verify Payroll*), Rates (*Can Manage Rates*), dan Admin.
-  - Atur **Password/PIN** (default: `1234`) untuk masing-masing akun penilai sehingga akun evaluator terlindungi saat berganti pengguna.
-  - Tombol *Show/Hide PIN* untuk melihat PIN yang terpasang.
-  - Tambah anggota tim penilai baru dengan hak akses dan warna avatar khusus.
-- **Cloud & Backup Center**: Backup data JSON satu klik dan panduan sinkronisasi multi-device.
+Master data bawaan berisi **1.798 livestream sessions** dan dapat diganti melalui CSV / Google Sheet sync.
 
 ---
 
-## 🚀 Cara Deploy Pembaruan ke Netlify
+## Phase 2 Architecture
 
-1. Unduh file `livestream-platform-netlify.zip`.
-2. Buka dashboard situs Anda di [Netlify Drop](https://app.netlify.com/drop) (atau menu **Deploys** di dashboard Netlify situs Anda).
-3. Tarik (*drag & drop*) file ZIP baru tersebut ke area upload Netlify.
-4. Situs langsung terbarui dengan seluruh fitur admin dan filter tanggal aktif.
+Aplikasi tetap berupa static web app yang ringan, tetapi runtime sekarang dipisah per domain agar lebih mudah dirawat:
+
+- `js/app.js` — core boot, navigation, filter, theme, dan view dispatcher.
+- `js/modules/views-dashboard.js` — Dashboard, Live Analytics, Hosts, Brands.
+- `js/modules/views-operations.js` — Payroll, Assessment, Reports.
+- `js/modules/views-admin.js` — Admin dan Settings.
+- `js/modules/accounts-ui.js` — account switcher dan account management UI.
+- `js/modules/interactions.js` — drawer, modal, import/export, review actions.
+- `js/store.js` — memoized derived-data store agar agregasi tidak dihitung ulang untuk setiap view.
+- `js/permissions.js` — capability guard berdasarkan sub-account aktif.
+- `js/ui-events.js` — delegated event handler untuk area Account/Admin.
+- `js/enhancements.js` — dashboard UX enhancement layer.
+
+Dataset besar tidak lagi ditanam di bundle JavaScript utama. Data session dipindahkan ke `data/sessions.json` dan dimuat asynchronous melalui `js/data-loader.js`, sehingga browser tidak perlu parse ratusan KB object literal sebelum aplikasi mulai boot.
+
+---
+
+## Dashboard & Filter
+
+Dashboard menyediakan:
+
+- Quick range **All / 7D / 30D / Month**.
+- Custom start/end date berdasarkan tanggal yang benar-benar tersedia di dataset.
+- KPI comparison terhadap periode sebelumnya.
+- Interactive GMV trend tooltip.
+- Top host, leading brand, most efficient platform, dan peak GMV day.
+- Brand legend yang dapat diklik untuk langsung memfilter data.
+- Empty state + reset filter jika kombinasi filter tidak menghasilkan session.
+
+Perhitungan `Last 7 Days` dan `Last 30 Days` sudah menggunakan jumlah hari inklusif yang benar dan tidak lagi bergantung pada tanggal hardcoded.
+
+---
+
+## Sub-Accounts & PIN
+
+Sub-account mendukung capability berikut:
+
+- Grade / review host.
+- Manage host rates.
+- Approve payroll.
+- Edit scoring weights.
+- Manage accounts & cloud configuration.
+
+PIN yang disimpan di browser/cloud **tidak lagi disimpan sebagai plaintext**. PIN diproses menggunakan **PBKDF2-SHA-256 + random salt** sebelum disimpan. Data PIN lama yang masih plaintext akan dimigrasikan ke format hash saat aplikasi dibuka.
+
+Admin tidak dapat melihat PIN existing. Untuk mengganti PIN, buka Edit Account lalu masukkan PIN baru.
+
+> Catatan: PIN ini merupakan **client-side access guard**, bukan server-side authentication. Untuk deployment dengan security requirement tinggi, gunakan Supabase Auth dan RLS authenticated-only.
+
+---
+
+## Local Storage & Cloud Sync
+
+Secara default configuration seperti sub-account, assessment, rate card, scoring weight, dan payroll status tersimpan di browser LocalStorage.
+
+Supabase dapat digunakan untuk sinkronisasi antar perangkat. Cloud request sekarang memvalidasi HTTP status sehingga dashboard tidak lagi melaporkan sync berhasil ketika server sebenarnya mengembalikan error.
+
+Menu Admin menyediakan:
+
+- Pull latest cloud data.
+- Push local state.
+- JSON backup.
+- JSON restore.
+- SQL setup script.
+
+Anon key Supabase bersifat public by design. Keamanan database harus ditentukan oleh Row Level Security (RLS), bukan dengan menyembunyikan anon key.
+
+---
+
+## Menjalankan Secara Lokal
+
+Karena dataset utama sekarang dimuat menggunakan `fetch()`, jangan membuka `index.html` langsung menggunakan `file://`.
+
+Jalankan folder melalui local web server, contohnya:
+
+```bash
+python3 -m http.server 8080
+```
+
+Lalu buka `http://localhost:8080`.
+
+---
+
+## Deploy ke Netlify
+
+Folder publish adalah root project ini (`publish = "."`).
+
+Setelah deploy baru, JS/CSS/data menggunakan `must-revalidate` supaya browser tidak tertahan pada bundle lama. Sebelumnya JS/CSS menggunakan cache immutable satu tahun walaupun filename tidak memiliki content hash, yang dapat menyebabkan user tetap melihat versi website lama setelah deploy.
+
+---
+
+## Master Spreadsheet
+
+Google Sheet ID default:
+
+`1mPTvujucuvcoQlnEticjy1QDhiYoguHqk89_ylj44o8`
+
+Target tab:
+
+`Report`
