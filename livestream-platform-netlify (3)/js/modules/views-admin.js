@@ -75,7 +75,7 @@
                   return `
                     <tr>
                       <td>
-                        <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="inline-group">
                           <div class="user-avatar" style="background:${h.avatarColor || '#0071e3'};width:28px;height:28px;font-size:11px;">
                             ${h.name.substring(0, 2).toUpperCase()}
                           </div>
@@ -95,7 +95,7 @@
                         <span style="font-size:11px;color:var(--text-tertiary);">${h.history.length} adjustments</span>
                       </td>
                       <td>
-                        <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11.5px" data-app-action="openAdjustRateModal" data-app-arg="${h.name}">
+                        <button class="apple-btn apple-btn-secondary compact-btn" data-app-action="openAdjustRateModal" data-app-arg="${h.name}">
                           ✏️ Adjust Rate
                         </button>
                       </td>
@@ -135,13 +135,13 @@
                 ${accounts.map(acc => `
                   <tr>
                     <td>
-                      <div style="display:flex;align-items:center;gap:10px;">
+                      <div class="inline-group">
                         <div class="user-avatar" style="background:${acc.avatarColor || '#0071e3'};width:32px;height:32px;font-size:12px;">
                           ${acc.initials}
                         </div>
                         <div>
                           <strong>${acc.name}</strong>
-                          <div style="font-size:11px;color:var(--text-tertiary)">${acc.description || ''}</div>
+                          <div class="helper-text">${acc.description || ''}</div>
                         </div>
                       </div>
                     </td>
@@ -161,7 +161,7 @@
                     </td>
                     <td>
                       <div style="display:flex;gap:6px;">
-                        <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="openEditAccountModal" data-app-arg="${acc.id}">
+                        <button class="apple-btn apple-btn-secondary compact-btn" data-app-action="openEditAccountModal" data-app-arg="${acc.id}">
                           ✏️ Edit
                         </button>
                         ${acc.id !== 'acc_afiq' ? `
@@ -211,16 +211,16 @@
               </div>
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-stack">
               <div>
-                <label style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Supabase Project URL</label>
-                <input type="text" id="supabase-url" value="${window.SupabaseEngine.url || ''}" placeholder="https://your-project-ref.supabase.co" class="select-filter" style="width:100%;font-family:monospace" />
+                <label class="form-label">Supabase Project URL</label>
+                <input type="text" id="supabase-url" value="${window.SupabaseEngine.url || ''}" placeholder="https://your-project-ref.supabase.co" class="select-filter full-width code-input" />
                 <span style="font-size:11px;color:var(--text-tertiary);margin-top:3px;display:block;">Found in Supabase Dashboard > Project Settings > API > Project URL</span>
               </div>
 
               <div>
-                <label style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Supabase Project API Key (anon public key)</label>
-                <input type="password" id="supabase-anon-key" value="${window.SupabaseEngine.anonKey || ''}" placeholder="eyJhbGciOi..." class="select-filter" style="width:100%;font-family:monospace" />
+                <label class="form-label">Supabase Project API Key (anon public key)</label>
+                <input type="password" id="supabase-anon-key" value="${window.SupabaseEngine.anonKey || ''}" placeholder="eyJhbGciOi..." class="select-filter full-width code-input" />
                 <span style="font-size:11px;color:var(--text-tertiary);margin-top:3px;display:block;">Found in Supabase Dashboard > Project Settings > API > anon public key (safe for client apps)</span>
               </div>
 
@@ -354,8 +354,8 @@
 
       container.innerHTML = `
         <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Restore Platform Backup</h3>
-        <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">Upload a previously downloaded JSON backup file to restore sub-accounts and rates</p>
-        <input type="file" id="backup-file-input" accept=".json" class="select-filter" style="width:100%" />
+        <p class="muted-copy">Upload a previously downloaded JSON backup file to restore sub-accounts and rates</p>
+        <input type="file" id="backup-file-input" accept=".json" class="select-filter full-width" />
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
           <button class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
           <button class="apple-btn apple-btn-primary" id="btn-process-backup">Restore Data</button>
@@ -409,11 +409,11 @@
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div>
               <label style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px">Google Sheet ID</label>
-              <input type="text" id="setting-sheet-id" value="${SyncEngine.sheetId}" class="select-filter" style="width:100%;font-family:monospace" />
+              <input type="text" id="setting-sheet-id" value="${SyncEngine.sheetId}" class="select-filter full-width code-input" />
             </div>
             <div>
               <label style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px">Target Sheet Name</label>
-              <input type="text" id="setting-sheet-name" value="${SyncEngine.sheetName}" class="select-filter" style="width:100%" />
+              <input type="text" id="setting-sheet-name" value="${SyncEngine.sheetName}" class="select-filter full-width" />
             </div>
 
             <div style="display:flex;gap:10px;margin-top:8px;">
