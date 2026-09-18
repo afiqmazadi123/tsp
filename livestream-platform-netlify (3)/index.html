@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Livestream Performance Intelligence Platform | Apple Pro Dashboard</title>
+  <title>FYC Live Ops Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/enhancements.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 </head>
 <body>
@@ -156,10 +157,16 @@
 
       <!-- Dynamic View Container -->
       <div class="content-body" id="view-render-area">
-        <div style="padding:40px;text-align:center;color:var(--text-secondary);">
-          <div style="font-size:24px;margin-bottom:8px;">⚡</div>
-          <div style="font-size:16px;font-weight:600;color:var(--text-primary);">Loading FYC Livestream Intelligence...</div>
-          <div style="font-size:12px;margin-top:4px;">Connecting to 1,798 shifts across TikTok & Shopee Live</div>
+        <div class="boot-skeleton" aria-live="polite" aria-busy="true">
+          <div class="boot-skeleton-heading"></div>
+          <div class="boot-skeleton-subheading"></div>
+          <div class="boot-skeleton-grid">
+            <div class="boot-skeleton-card"></div>
+            <div class="boot-skeleton-card"></div>
+            <div class="boot-skeleton-card"></div>
+            <div class="boot-skeleton-card"></div>
+          </div>
+          <div class="boot-skeleton-panel"></div>
         </div>
       </div>
     </main>
@@ -175,7 +182,7 @@
   </div>
 
   <!-- Generic Modal -->
-  <div class="modal-backdrop" id="generic-modal" onclick="if(event.target===this) App.closeModal()">
+  <div class="modal-backdrop" id="generic-modal" data-modal-backdrop>
     <div class="modal-window">
       <div id="modal-inner-content"></div>
     </div>
@@ -183,13 +190,25 @@
 
   <!-- Scripts Stack -->
   <script src="js/data.js"></script>
-  <script src="js/supabase.js"></script>
+  <script src="js/data-loader.js"></script>
   <script src="js/accounts.js"></script>
   <script src="js/apple-charts.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/scoring.js"></script>
   <script src="js/payroll.js"></script>
   <script src="js/sync.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/modules/accounts-ui.js"></script>
+  <script src="js/modules/views-dashboard.js"></script>
+  <script src="js/modules/views-operations.js"></script>
+  <script src="js/modules/views-admin.js"></script>
+  <script src="js/modules/interactions.js"></script>
+  <script src="js/ui-system.js"></script>
+  <script src="js/ui-events.js"></script>
+  <script src="js/permissions.js"></script>
+  <script src="js/enhancements.js"></script>
 </body>
 </html>
