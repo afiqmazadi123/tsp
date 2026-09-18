@@ -18,36 +18,23 @@
         anonKey: 'sb_publishable__ZXAk3Mj4U6zWwjQqIuvsg_JZrLbiQT'
       };
 
-      const savedConfig = typeof localStorage !== 'undefined' ? localStorage.getItem('fyc_supabase_config') : null;
-      if (savedConfig) {
-        try {
-          const parsed = JSON.parse(savedConfig);
-          this.url = (parsed.url || '').trim().replace(/\/$/, '');
-          this.anonKey = (parsed.anonKey || '').trim();
-          this.isConnected = !!(this.url && this.anonKey);
-          this.lastCloudSync = localStorage.getItem('fyc_supabase_last_sync') || null;
-          if (this.isConnected) this.syncDown(false);
-        } catch (err) {
-          console.warn('Invalid Supabase configuration:', err);
-        }
-      } else {
-        this.url = DEFAULT_CONFIG.url;
-        this.anonKey = DEFAULT_CONFIG.anonKey;
-        this.isConnected = true;
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('fyc_supabase_config', JSON.stringify(DEFAULT_CONFIG));
-        }
-        Promise.resolve(window.SupabaseAuth?.ready)
-          .catch(() => null)
-          .finally(() => this.syncDown(false));
+      this.url = DEFAULT_CONFIG.url;
+      this.anonKey = DEFAULT_CONFIG.anonKey;
+      this.isConnected = true;
+      this.lastCloudSync = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('fyc_supabase_last_sync') || null
+        : null;
+
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('fyc_supabase_config', JSON.stringify(DEFAULT_CONFIG));
       }
     },
 
-    saveConfig(url, anonKey) {
-      this.url = (url || '').trim().replace(/\/$/, '');
-      this.anonKey = (anonKey || '').trim();
-      this.isConnected = !!(this.url && this.anonKey);
-
+    saveConfig() {
+      // Production Supabase endpoint is intentionally fixed.
+      this.url = 'https://htckrzrpukospxokkgvd.supabase.co';
+      this.anonKey = 'sb_publishable__ZXAk3Mj4U6zWwjQqIuvsg_JZrLbiQT';
+      this.isConnected = true;
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('fyc_supabase_config', JSON.stringify({
           url: this.url,
@@ -68,13 +55,14 @@
     },
 
     getHeaders(prefer = 'return=representation') {
-      const bearer = window.SupabaseAuth?.getAccessToken?.() || this.anonKey;
-      return {
+      const headers = {
         apikey: this.anonKey,
-        Authorization: `Bearer ${bearer}`,
         'Content-Type': 'application/json',
         Prefer: prefer
       };
+      const accessToken = window.SupabaseAuth?.getAccessToken?.();
+      if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+      return headers;
     },
 
     async request(path, options = {}) {
