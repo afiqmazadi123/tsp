@@ -65,6 +65,10 @@
     async request(path, options = {}) {
       if (!this.url || !this.anonKey) throw new Error('Supabase is not configured.');
 
+      if (window.SupabaseAuth?.isAuthenticated?.()) {
+        await window.SupabaseAuth.ensureFreshSession();
+      }
+
       const response = await fetch(`${this.url}/rest/v1/${path}`, {
         ...options,
         headers: {
