@@ -331,6 +331,10 @@
         const session = await window.SupabaseAuth.signIn(email, password);
         window.UI?.toast?.(`Signed in as ${session.user?.email || email}.`, 'success');
         await window.SupabaseEngine.syncDown(false);
+        const boundAccount = await window.SupabaseAuth.bindLocalAccount();
+        if (!boundAccount) {
+          window.UI?.toast?.('Auth succeeded, but this user UUID is not mapped to a dashboard sub-account yet.', 'warning', { duration: 6000 });
+        }
         this.updateAccountUI();
         this.renderCurrentView();
       }, 'Signing in securely…');
