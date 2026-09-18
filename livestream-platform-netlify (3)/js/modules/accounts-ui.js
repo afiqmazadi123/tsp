@@ -153,16 +153,21 @@
       }
     },
 
-    deleteAccount(accountId) {
+    async deleteAccount(accountId) {
       const acc = Accounts.getAccount(accountId);
       if (!acc) return;
 
-      if (confirm(`Are you sure you want to delete sub-account "${acc.name}" (${acc.role})?`)) {
-        if (Accounts.deleteAccount(accountId)) {
-          this.updateAccountUI();
-          this.openAccountSwitcherModal();
-          this.renderCurrentView();
-        }
+      const confirmed = await window.UI?.confirm?.(
+        `Delete sub-account "${acc.name}" (${acc.role})? This cannot be undone.`,
+        { title: 'Delete sub-account', confirmLabel: 'Delete', danger: true }
+      );
+      if (!confirmed) return;
+
+      if (Accounts.deleteAccount(accountId)) {
+        window.UI?.toast?.('Sub-account deleted.', 'success');
+        this.updateAccountUI();
+        this.openAccountSwitcherModal();
+        this.renderCurrentView();
       }
     },
 
