@@ -180,17 +180,7 @@
       `;
     },
 
-    togglePinVisibility(accId, realPin) {
-      const el = document.getElementById(`pin-mask-${accId}`);
-      if (!el) return;
-      if (el.textContent === '••••') {
-        el.textContent = realPin;
-      } else {
-        el.textContent = '••••';
-      }
-    },
-
-        renderAdminCloudSync() {
+    renderAdminCloudSync() {
       const isConnected = window.SupabaseEngine && window.SupabaseEngine.isConnected;
       const lastSync = window.SupabaseEngine ? (window.SupabaseEngine.lastCloudSync || 'Never') : 'Never';
       const sqlSchema = window.SupabaseEngine ? window.SupabaseEngine.getSQLSchemaScript() : '';
