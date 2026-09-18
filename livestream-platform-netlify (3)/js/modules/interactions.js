@@ -314,14 +314,20 @@
       modal.classList.add('active');
     },
 
-    deleteReview(reviewId) {
-      if (confirm('Are you sure you want to delete this assessment?')) {
-        Scoring.deleteAssessment(reviewId);
-        this.closeModal();
-        this.renderCurrentView();
-        if (this.selectedHostForDrawer) {
-          this.openHostDrawer(this.selectedHostForDrawer);
-        }
+    async deleteReview(reviewId) {
+      const confirmed = await window.UI?.confirm?.(
+        'Delete this assessment? This cannot be undone.',
+        { title: 'Delete assessment', confirmLabel: 'Delete', danger: true }
+      );
+      if (!confirmed) return;
+
+      Scoring.deleteAssessment(reviewId);
+      window.AppStore?.invalidate();
+      window.UI?.toast?.('Assessment deleted.', 'success');
+      this.closeModal();
+      this.renderCurrentView();
+      if (this.selectedHostForDrawer) {
+        this.openHostDrawer(this.selectedHostForDrawer);
       }
     },
 
