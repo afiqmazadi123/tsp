@@ -1,50 +1,14 @@
 /**
  * Livestream Performance Intelligence Platform
- * Main UI Controller & View Manager
- * Features: Apple Pro UI, Sub-Accounts (Evaluators, Admin, Finance), Full Edit/Update/Delete Assessments,
- * Start+End Date Range Picker, and Dedicated Admin Control Panel (Host Rates, Sub-Accounts, PIN/Passwords)
+ * Core UI controller: boot, navigation, filters, theme, and view dispatch.
+ * Domain views and interactions live in js/modules/.
  */
 
 (function(window) {
   'use strict';
 
-  // Fallback for Accounts if accounts.js was blocked or failed
-  if (typeof window.Accounts === 'undefined') {
-    window.Accounts = {
-      accounts: [
-        { id: 'acc_afiq', name: 'Afiq Mazadi', role: 'Lead Live Operations', pin: '1234', initials: 'AM', avatarColor: '#0071e3', canGrade: true, canManageRates: true, canManageAccounts: true, canApprovePayroll: true, description: 'Super Admin' },
-        { id: 'acc_harto', name: 'Ko Harto', role: 'Head of Livestreaming', pin: '1234', initials: 'KH', avatarColor: '#bf5af2', canGrade: true, canManageRates: true, canManageAccounts: true, canApprovePayroll: true, description: 'Executive Reviewer' },
-        { id: 'acc_cici', name: 'Cici', role: 'Quality & Host Assessment Supervisor', pin: '1234', initials: 'CC', avatarColor: '#ff2d55', canGrade: true, canManageRates: false, canManageAccounts: false, canApprovePayroll: false, description: 'Lead Evaluator' },
-        { id: 'acc_aimee', name: 'Aimee', role: 'Livestream Operations Evaluator', pin: '1234', initials: 'AI', avatarColor: '#30d158', canGrade: true, canManageRates: false, canManageAccounts: false, canApprovePayroll: false, description: 'Shift Evaluator' },
-        { id: 'acc_finance', name: 'Finance Team', role: 'Payroll Specialist', pin: '1234', initials: 'FN', avatarColor: '#ff9f0a', canGrade: false, canManageRates: true, canManageAccounts: false, canApprovePayroll: true, description: 'Payroll Verifier' },
-        { id: 'acc_brand', name: 'Brand Partner Guest', role: 'Brand Client View', pin: '', initials: 'BP', avatarColor: '#64d2ff', canGrade: false, canManageRates: false, canManageAccounts: false, canApprovePayroll: false, description: 'Pitch Mode Guest' }
-      ],
-      currentAccountId: 'acc_afiq',
-      getCurrentAccount() { return this.getAccount(this.currentAccountId) || this.accounts[0]; },
-      getAccounts() { return this.accounts; },
-      getReviewerAccounts() { return this.accounts.filter(a => a.canGrade); },
-      getAccount(id) { return this.accounts.find(a => a.id === id) || this.accounts[0]; },
-      getAccountByName(name) { return this.accounts.find(a => a.name.toLowerCase() === name.toLowerCase()); },
-      verifyPin(id, pin) { const a = this.getAccount(id); return !a.pin || a.pin === String(pin).trim(); },
-      switchAccount(id) { this.currentAccountId = id; return this.getAccount(id); },
-      addAccount(acc) {
-        acc.id = 'acc_' + Date.now();
-        acc.initials = acc.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'TM';
-        acc.pin = acc.pin || '1234';
-        this.accounts.push(acc);
-        return acc;
-      },
-      updateAccount(id, fields) {
-        const idx = this.accounts.findIndex(a => a.id === id);
-        if (idx >= 0) this.accounts[idx] = { ...this.accounts[idx], ...fields };
-        return this.accounts[idx];
-      },
-      deleteAccount(id) {
-        if (id === 'acc_afiq') return false;
-        this.accounts = this.accounts.filter(a => a.id !== id);
-        return true;
-      }
-    };
+  if (!window.Accounts) {
+    throw new Error('Accounts module failed to load.');
   }
 
   const App = {
