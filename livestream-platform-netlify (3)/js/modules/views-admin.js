@@ -194,6 +194,8 @@
       const isConnected = window.SupabaseEngine && window.SupabaseEngine.isConnected;
       const lastSync = window.SupabaseEngine ? (window.SupabaseEngine.lastCloudSync || 'Never') : 'Never';
       const sqlSchema = window.SupabaseEngine ? window.SupabaseEngine.getSQLSchemaScript() : '';
+      const authUser = window.SupabaseAuth?.getUser?.() || null;
+      const authActive = !!window.SupabaseAuth?.isAuthenticated?.();
 
       return `
         <div style="display:flex;flex-direction:column;gap:20px;max-width:900px;">
@@ -241,6 +243,49 @@
             </div>
           </div>
 
+          <!-- Optional Secure Authentication -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3>Secure Supabase Auth</h3>
+                <p>Optional production mode. Authenticated sessions use the user JWT for database requests.</p>
+              </div>
+              <span class="delta-badge ${authActive ? 'positive' : 'neutral'}">
+                ${authActive ? '● Authenticated' : '○ Anon-compatible'}
+              </span>
+            </div>
+
+            ${!isConnected ? `
+              <p class="muted-copy">Connect the Supabase project above before signing in.</p>
+            ` : authActive ? `
+              <div class="auth-session-card">
+                <div>
+                  <span class="helper-text">Signed in as</span>
+                  <strong>${authUser?.email || 'Supabase user'}</strong>
+                  <span class="helper-text code-input">${authUser?.id || ''}</span>
+                </div>
+                <button class="apple-btn apple-btn-secondary" data-app-action="signOutSupabaseAuth">Sign out</button>
+              </div>
+            ` : `
+              <div class="form-stack auth-login-form">
+                <div class="form-grid-2">
+                  <div>
+                    <label class="form-label">Auth Email</label>
+                    <input type="email" id="supabase-auth-email" class="select-filter full-width" autocomplete="username" placeholder="name@company.com" />
+                  </div>
+                  <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" id="supabase-auth-password" class="select-filter full-width" autocomplete="current-password" placeholder="Supabase Auth password" />
+                  </div>
+                </div>
+                <div class="auth-login-footer">
+                  <span class="helper-text">Provision users in Supabase Auth and map their UUID to <code>sub_accounts.auth_user_id</code> before enabling secure RLS.</span>
+                  <button class="apple-btn apple-btn-primary" data-app-action="signInSupabaseAuth">Sign in securely</button>
+                </div>
+              </div>
+            `}
+          </div>
+
           <!-- Setup SQL Schema Script -->
           <div class="glass-card">
             <div class="card-header">
@@ -272,6 +317,29 @@
           </div>
         </div>
       `;
+    },
+
+    async signInSupabaseAuth() {
+      const email = document.getElementById('supabase-auth-email')?.value.trim();
+      const password = document.getElementById('supabase-auth-password')?.value || '';
+      if (!email || !password) {
+        window.UI?.toast?.('Enter the Supabase Auth email and password.', 'warning');
+        return;
+      }
+
+      await window.UI.withBusy(async () => {
+        const session = await window.SupabaseAuth.signIn(email, password);
+        window.UI?.toast?.(`Signed in as ${session.user?.email || email}.`, 'success');
+        await window.SupabaseEngine.syncDown(false);
+        this.updateAccountUI();
+        this.renderCurrentView();
+      }, 'Signing in securely…');
+    },
+
+    async signOutSupabaseAuth() {
+      await window.SupabaseAuth?.signOut?.();
+      window.UI?.toast?.('Supabase Auth session signed out. Anon-compatible mode remains available.', 'success');
+      this.renderCurrentView();
     },
 
     async connectSupabase() {
