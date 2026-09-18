@@ -22,12 +22,12 @@
             <h3 style="font-size:18px;font-weight:700">Sub-Accounts & Team Switcher</h3>
             <p style="font-size:12px;color:var(--text-tertiary)">Select an account to log in, grade hosts, verify payroll, or pitch brands</p>
           </div>
-          <button class="apple-btn apple-btn-primary" style="padding:5px 12px;font-size:12px;" onclick="App.openAddAccountModal()">+ New Evaluator</button>
+          <button class="apple-btn apple-btn-primary" style="padding:5px 12px;font-size:12px;" data-app-action="openAddAccountModal">+ New Evaluator</button>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
           ${accounts.map(acc => `
-            <div class="account-item-card ${acc.id === currentAcc.id ? 'active-account' : ''}" onclick="App.requestAccountSwitch('${acc.id}')">
+            <div class="account-item-card ${acc.id === currentAcc.id ? 'active-account' : ''}" data-app-action="requestAccountSwitch" data-app-arg="${acc.id}">
               <div style="display:flex;align-items:center;gap:12px;">
                 <div class="user-avatar" style="background:${acc.avatarColor};width:40px;height:40px;font-size:14px;">
                   ${acc.initials}
@@ -47,7 +47,7 @@
               <div style="display:flex;align-items:center;gap:8px;">
                 ${acc.canGrade ? '<span class="tier-badge" style="background:rgba(48,209,88,0.15);color:var(--apple-green)">Evaluator</span>' : ''}
                 ${acc.id !== 'acc_afiq' ? `
-                  <button class="review-action-btn delete" onclick="event.stopPropagation(); App.deleteAccount('${acc.id}')" title="Delete this sub-account">
+                  <button class="review-action-btn delete" data-app-action="deleteAccount" data-app-arg="${acc.id}" data-stop-propagation="true" title="Delete this sub-account">
                     ✕
                   </button>
                 ` : ''}
@@ -60,8 +60,8 @@
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <button class="apple-btn apple-btn-secondary" onclick="App.switchView('admin'); App.closeModal();">Open Admin Management Panel</button>
-          <button class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Close</button>
+          <button class="apple-btn apple-btn-secondary" data-app-action="openAdminPanel">Open Admin Management Panel</button>
+          <button class="apple-btn apple-btn-secondary" data-app-action="closeModal">Close</button>
         </div>
       `;
 
@@ -109,7 +109,7 @@
             <div id="pin-error-msg" style="color:var(--apple-red);font-size:11.5px;display:none;">Incorrect PIN. Please try again.</div>
 
             <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;">
-              <button type="button" class="apple-btn apple-btn-secondary" onclick="App.openAccountSwitcherModal()">Back</button>
+              <button type="button" class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Back</button>
               <button type="submit" class="apple-btn apple-btn-primary">Unlock & Switch</button>
             </div>
           </form>
@@ -214,7 +214,7 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
-            <button type="button" class="apple-btn apple-btn-secondary" onclick="App.openAccountSwitcherModal()">Back</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Back</button>
             <button type="submit" class="apple-btn apple-btn-primary">Create Sub-Account</button>
           </div>
         </form>
@@ -304,7 +304,7 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
-            <button type="button" class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Cancel</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Save Changes</button>
           </div>
         </form>
