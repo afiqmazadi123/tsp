@@ -32,7 +32,7 @@
           </div>
           <div class="glass-card kpi-card">
             <span class="kpi-label">Total Approved Live Hours</span>
-            <div class="kpi-value">${payrollSummary.totalHoursAll.toFixed(0)} <span style="font-size:14px;font-weight:500;color:var(--text-tertiary)">hrs</span></div>
+            <div class="kpi-value">${payrollSummary.totalHoursAll.toFixed(0)} <span class="metric-unit">hrs</span></div>
             <div class="kpi-meta">Across 15 creators</div>
           </div>
           <div class="glass-card kpi-card">
@@ -76,7 +76,7 @@
                     <td>${AppleCharts.formatIDR(p.basePay)}</td>
                     <td>
                       <span style="color:var(--apple-yellow);font-weight:600">${AppleCharts.formatIDR(p.bonus)}</span>
-                      <div style="font-size:10px;color:var(--text-tertiary)">${p.bonusLabel}</div>
+                      <div class="meta-xs">${p.bonusLabel}</div>
                     </td>
                     <td style="font-size:14px;font-weight:700;color:var(--apple-green)">${AppleCharts.formatIDR(p.totalPay)}</td>
                     <td>
@@ -85,10 +85,10 @@
                       </span>
                     </td>
                     <td>
-                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="toggleHostPayrollStatus" data-app-arg="${p.name}">
+                      <button class="apple-btn apple-btn-secondary compact-btn" data-app-action="toggleHostPayrollStatus" data-app-arg="${p.name}">
                         ${p.status === 'Approved' ? 'Mark Paid' : (p.status === 'Paid' ? 'Reset' : 'Approve')}
                       </button>
-                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="openPayrollSlipModal" data-app-arg="${p.name}">Slip</button>
+                      <button class="apple-btn apple-btn-secondary compact-btn" data-app-action="openPayrollSlipModal" data-app-arg="${p.name}">Slip</button>
                     </td>
                   </tr>
                 `).join('')}
@@ -282,7 +282,7 @@
               <h3>Team Evaluation Records (${displayedReviews.length})</h3>
               <p>Individual ratings submitted by reviewers. Click Edit to adjust scores or notes.</p>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">
+            <div class="inline-group">
               <label style="font-size:12px;color:var(--text-tertiary)">Filter Reviewer:</label>
               <select class="select-filter" onchange="App.filterReviewsByReviewer(this.value)">
                 <option value="all" ${this.assessmentFilterReviewer === 'all' ? 'selected' : ''}>All Reviewers (${allReviews.length})</option>
@@ -314,10 +314,10 @@
                 </div>
 
                 <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;background:rgba(255,255,255,0.02);padding:8px;border-radius:var(--radius-sm);text-align:center;">
-                  <div><span style="font-size:10px;color:var(--text-tertiary)">CTA</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.cta}</div></div>
-                  <div><span style="font-size:10px;color:var(--text-tertiary)">Pin</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.pin}</div></div>
-                  <div><span style="font-size:10px;color:var(--text-tertiary)">Disc</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.discipline}</div></div>
-                  <div><span style="font-size:10px;color:var(--text-tertiary)">Groom</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.grooming}</div></div>
+                  <div><span class="meta-xs">CTA</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.cta}</div></div>
+                  <div><span class="meta-xs">Pin</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.pin}</div></div>
+                  <div><span class="meta-xs">Disc</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.discipline}</div></div>
+                  <div><span class="meta-xs">Groom</span><div style="font-size:12.5px;font-weight:700;color:#ffd60a">★${r.grooming}</div></div>
                 </div>
 
                 <div style="font-size:11.5px;color:var(--text-secondary);font-style:italic;">
@@ -390,10 +390,10 @@
             </div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;padding-bottom:16px;">
-            <div><span style="font-size:11px;color:var(--text-tertiary)">TOTAL GMV GENERATED</span><div style="font-size:22px;font-weight:700;color:var(--apple-cyan)">${AppleCharts.formatIDR(kpis.totalGMV)}</div></div>
-            <div><span style="font-size:11px;color:var(--text-tertiary)">TOTAL BROADCAST TIME</span><div style="font-size:22px;font-weight:700">${kpis.totalDuration.toFixed(1)} Hours</div></div>
-            <div><span style="font-size:11px;color:var(--text-tertiary)">AVERAGE PRODUCTIVITY</span><div style="font-size:22px;font-weight:700">${AppleCharts.formatIDR(kpis.avgGmvHour)}/hr</div></div>
-            <div><span style="font-size:11px;color:var(--text-tertiary)">TOTAL UNITS SOLD</span><div style="font-size:22px;font-weight:700">${kpis.totalSold.toLocaleString()} pcs</div></div>
+            <div><span class="helper-text">TOTAL GMV GENERATED</span><div style="font-size:22px;font-weight:700;color:var(--apple-cyan)">${AppleCharts.formatIDR(kpis.totalGMV)}</div></div>
+            <div><span class="helper-text">TOTAL BROADCAST TIME</span><div style="font-size:22px;font-weight:700">${kpis.totalDuration.toFixed(1)} Hours</div></div>
+            <div><span class="helper-text">AVERAGE PRODUCTIVITY</span><div style="font-size:22px;font-weight:700">${AppleCharts.formatIDR(kpis.avgGmvHour)}/hr</div></div>
+            <div><span class="helper-text">TOTAL UNITS SOLD</span><div style="font-size:22px;font-weight:700">${kpis.totalSold.toLocaleString()} pcs</div></div>
           </div>
         </div>
 
