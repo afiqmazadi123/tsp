@@ -13,14 +13,14 @@
       const payrollSummary = Payroll.calculatePayrollSummary(hostAggs, '2026-09');
 
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="view-header">
           <div>
-            <h2 style="font-size:20px;font-weight:700">Creator Payroll Validation & Settlement</h2>
-            <p style="font-size:12.5px;color:var(--text-tertiary)">Formula: Approved Live Hours × Applicable Rate + Performance Milestone Incentive</p>
+            <h2 class="view-title">Creator Payroll Validation & Settlement</h2>
+            <p class="view-subtitle">Formula: Approved Live Hours × Applicable Rate + Performance Milestone Incentive</p>
           </div>
-          <div style="display:flex;gap:10px;">
-            <button class="apple-btn apple-btn-secondary" onclick="App.approveAllPayroll()">Approve All</button>
-            <button class="apple-btn apple-btn-primary" onclick="App.exportPayrollCSV()">Export Payroll CSV</button>
+          <div class="action-row">
+            <button class="apple-btn apple-btn-secondary" data-app-action="approveAllPayroll">Approve All</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="exportPayrollCSV">Export Payroll CSV</button>
           </div>
         </div>
 
@@ -51,7 +51,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="apple-table">
+            <table class="apple-table" data-sortable="true">
               <thead>
                 <tr>
                   <th>Host</th>
@@ -71,7 +71,7 @@
                     <td>${p.hours.toFixed(1)} hrs (${p.sessions} shifts)</td>
                     <td>
                       <span style="font-weight:600">${AppleCharts.formatIDR(p.rate)}</span>/hr
-                      <button class="apple-btn apple-btn-secondary" style="padding:1px 6px;font-size:10px;margin-left:6px" onclick="App.openAdjustRateModal('${p.name}')">Edit</button>
+                      <button class="apple-btn apple-btn-secondary" style="padding:1px 6px;font-size:10px;margin-left:6px" data-app-action="openAdjustRateModal" data-app-arg="${p.name}">Edit</button>
                     </td>
                     <td>${AppleCharts.formatIDR(p.basePay)}</td>
                     <td>
@@ -85,10 +85,10 @@
                       </span>
                     </td>
                     <td>
-                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" onclick="App.toggleHostPayrollStatus('${p.name}')">
+                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="toggleHostPayrollStatus" data-app-arg="${p.name}">
                         ${p.status === 'Approved' ? 'Mark Paid' : (p.status === 'Paid' ? 'Reset' : 'Approve')}
                       </button>
-                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" onclick="App.openPayrollSlipModal('${p.name}')">Slip</button>
+                      <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="openPayrollSlipModal" data-app-arg="${p.name}">Slip</button>
                     </td>
                   </tr>
                 `).join('')}
@@ -118,14 +118,14 @@
       }
 
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="view-header">
           <div>
-            <h2 style="font-size:20px;font-weight:700">Multi-Reviewer Assessment & Scoring Engine</h2>
-            <p style="font-size:12.5px;color:var(--text-tertiary)">Grade host performance, update previous evaluations, and configure scoring formulas</p>
+            <h2 class="view-title">Multi-Reviewer Assessment & Scoring Engine</h2>
+            <p class="view-subtitle">Grade host performance, update previous evaluations, and configure scoring formulas</p>
           </div>
-          <div style="display:flex;gap:10px;">
-            <button class="apple-btn apple-btn-secondary" onclick="App.openAccountSwitcherModal()">Switch Evaluator (${currentAcc.name})</button>
-            <button class="apple-btn apple-btn-primary" onclick="App.openAddReviewModal()">+ Grade Host</button>
+          <div class="action-row">
+            <button class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Switch Evaluator (${currentAcc.name})</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="openAddReviewModal">+ Grade Host</button>
           </div>
         </div>
 
@@ -144,10 +144,10 @@
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" onclick="App.filterReviewsByReviewer('${currentAcc.name}')">
+            <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" data-app-action="filterReviewsByReviewer" data-app-arg="${currentAcc.name}">
               View My Evaluations (${myReviews.length})
             </button>
-            <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" onclick="App.filterReviewsByReviewer('all')">
+            <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" data-app-action="filterReviewsByReviewer" data-app-arg="all">
               View All Reviews (${allReviews.length})
             </button>
           </div>
@@ -159,7 +159,7 @@
               <h3>Configurable Scoring Engine Weights</h3>
               <p>Drag sliders to dynamically rebalance team performance scoring</p>
             </div>
-            <button class="apple-btn apple-btn-secondary" onclick="App.resetDefaultWeights()">Reset Defaults</button>
+            <button class="apple-btn apple-btn-secondary" data-app-action="resetDefaultWeights">Reset Defaults</button>
           </div>
 
           <div class="scoring-config-panel">
@@ -228,7 +228,7 @@
           </div>
 
           <div class="table-responsive">
-            <table class="apple-table">
+            <table class="apple-table" data-sortable="true">
               <thead>
                 <tr>
                   <th>Rank</th>
@@ -247,7 +247,7 @@
                 ${scoredHosts.map(h => {
                   const myReview = Scoring.getHostReviewByReviewer(h.name, currentAcc.name);
                   return `
-                    <tr onclick="App.openHostDrawer('${h.name}')" style="cursor:pointer">
+                    <tr data-app-action="openHostDrawer" data-app-arg="${h.name}" style="cursor:pointer">
                       <td><div class="rank-badge ${h.rank === 1 ? 'rank-1' : (h.rank === 2 ? 'rank-2' : (h.rank === 3 ? 'rank-3' : 'rank-other'))}">${h.rank}</div></td>
                       <td><strong>${h.name}</strong></td>
                       <td><span style="font-weight:600;color:var(--apple-cyan)">${h.perfScore.toFixed(1)}%</span></td>
@@ -257,13 +257,13 @@
                       <td>★ ${h.assessData.grooming.toFixed(1)}</td>
                       <td><span style="font-weight:600;color:var(--apple-purple)">${h.assessScore.toFixed(1)}%</span></td>
                       <td style="font-size:15px;font-weight:700;color:var(--text-primary)">${h.finalScore.toFixed(1)}%</td>
-                      <td onclick="event.stopPropagation()">
+                      <td >
                         ${myReview ? `
-                          <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px;color:var(--apple-cyan)" onclick="App.openEditReviewModal('${myReview.id}')">
+                          <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px;color:var(--apple-cyan)" data-app-action="openEditReviewModal" data-app-arg="${myReview.id}" data-stop-propagation="true">
                             ✏️ Edit My Score (${myReview.cta.toFixed(1)})
                           </button>
                         ` : `
-                          <button class="apple-btn apple-btn-primary" style="padding:3px 8px;font-size:11px" onclick="App.openAddReviewModal('${h.name}')">
+                          <button class="apple-btn apple-btn-primary" style="padding:3px 8px;font-size:11px" data-app-action="openAddReviewModal" data-app-arg="${h.name}" data-stop-propagation="true">
                             ★ Grade Host
                           </button>
                         `}
@@ -304,10 +304,10 @@
                     </div>
                   </div>
                   <div style="display:flex;gap:6px;">
-                    <button class="review-action-btn" onclick="App.openEditReviewModal('${r.id}')" title="Edit this assessment">
+                    <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">
                       ✏️ Edit
                     </button>
-                    <button class="review-action-btn delete" onclick="App.deleteReview('${r.id}')" title="Delete this assessment">
+                    <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">
                       ✕
                     </button>
                   </div>
@@ -371,14 +371,14 @@
           <p>FYC Agency • Generated on ${new Date().toLocaleDateString('id-ID')}</p>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="view-header">
           <div>
-            <h2 style="font-size:20px;font-weight:700">Executive Report Generator</h2>
-            <p style="font-size:12.5px;color:var(--text-tertiary)">Print or download high-resolution intelligence summaries ready for leadership and brand partners</p>
+            <h2 class="view-title">Executive Report Generator</h2>
+            <p class="view-subtitle">Print or download high-resolution intelligence summaries ready for leadership and brand partners</p>
           </div>
-          <div style="display:flex;gap:10px;">
-            <button class="apple-btn apple-btn-secondary" onclick="App.exportSessionsCSV()">Export Master CSV</button>
-            <button class="apple-btn apple-btn-primary" onclick="window.print()">Print / Export PDF</button>
+          <div class="action-row">
+            <button class="apple-btn apple-btn-secondary" data-app-action="exportSessionsCSV">Export Master CSV</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="print">Print / Export PDF</button>
           </div>
         </div>
 
@@ -405,7 +405,7 @@
             </div>
           </div>
           <div class="table-responsive">
-            <table class="apple-table">
+            <table class="apple-table" data-sortable="true">
               <thead>
                 <tr>
                   <th>Rank</th>
