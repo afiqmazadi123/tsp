@@ -415,8 +415,11 @@
 
       container.innerHTML = `
         <div class="print-header">
-          <h1>Livestream Performance Intelligence Executive Report</h1>
-          <p>FYC Agency • Generated on ${new Date().toLocaleDateString('id-ID')}</p>
+          <img src="assets/fyc-logo.svg" alt="FYC" class="report-fyc-logo" />
+          <div>
+            <h1>Livestream Performance Intelligence Executive Report</h1>
+            <p>FYC Agency • Generated on ${new Date().toLocaleDateString('id-ID')}</p>
+          </div>
         </div>
 
         <div class="view-header">
