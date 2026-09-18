@@ -18,7 +18,7 @@
         <div class="view-header">
           <div>
             <h2 class="view-title">Admin Control Panel</h2>
-            <p class="view-subtitle">Manage creator hourly rates, sub-accounts, passwords/PINs, and cloud data portability</p>
+            <p class="view-subtitle">Manage creator rates, authenticated team access, permissions, and private cloud data</p>
           </div>
           <div class="action-row">
             <button class="apple-btn apple-btn-secondary" data-app-action="exportFullBackupJSON">Download Data Backup</button>
@@ -29,7 +29,7 @@
         <!-- Admin Navigation Tabs -->
         <div class="admin-tabs">
           <button class="admin-tab-btn ${this.adminActiveTab === 'host-rates' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="host-rates">Host Rate Cards (${hostRates.length})</button>
-          <button class="admin-tab-btn ${this.adminActiveTab === 'sub-accounts' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="sub-accounts">Sub-Accounts & PINs (${accounts.length})</button>
+          <button class="admin-tab-btn ${this.adminActiveTab === 'sub-accounts' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="sub-accounts">Team Access (${accounts.length})</button>
           <button class="admin-tab-btn ${this.adminActiveTab === 'cloud-sync' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="cloud-sync">Cloud & Storage Info</button>
         </div>
 
@@ -114,8 +114,8 @@
         <div class="glass-card">
           <div class="card-header">
             <div class="card-title-group">
-              <h3>Sub-Accounts & Authentication Security</h3>
-              <p>Manage team evaluator credentials, PIN passwords, and administrative access rights</p>
+              <h3>Team Access & Authentication</h3>
+              <p>Every visible account has a mapped Supabase Auth identity and server-enforced permissions.</p>
             </div>
             <button class="apple-btn apple-btn-primary" data-app-action="openAddAccountModal">+ Add Sub-Account</button>
           </div>
@@ -126,7 +126,7 @@
                 <tr>
                   <th>User / Evaluator</th>
                   <th>Role & Title</th>
-                  <th>Security PIN</th>
+                  <th>Auth Status</th>
                   <th>Permissions</th>
                   <th>Actions</th>
                 </tr>
@@ -149,10 +149,13 @@
                       <span class="tier-badge" style="background:rgba(0,113,227,0.15);color:var(--apple-cyan)">${acc.role}</span>
                     </td>
                     <td>
-                      <span class="pin-display-mask">${Accounts.hasPin(acc) ? 'Protected' : 'No PIN'}</span>
+                      <span class="auth-table-status ${acc.auth_user_id ? 'linked' : 'pending'}">
+                        <span class="auth-status-dot"></span>
+                        ${acc.auth_user_id ? 'Login enabled' : 'Not linked'}
+                      </span>
                     </td>
                     <td>
-                      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <div class="permission-badge-row">
                         ${acc.canGrade ? '<span class="tier-badge" style="background:rgba(48,209,88,0.15);color:var(--apple-green)">Evaluator</span>' : ''}
                         ${acc.canManageRates ? '<span class="tier-badge" style="background:rgba(255,159,10,0.15);color:var(--apple-orange)">Rates</span>' : ''}
                         ${acc.canApprovePayroll ? '<span class="tier-badge" style="background:rgba(191,90,242,0.15);color:var(--apple-purple)">Payroll</span>' : ''}
@@ -160,7 +163,7 @@
                       </div>
                     </td>
                     <td>
-                      <div style="display:flex;gap:6px;">
+                      <div class="table-action-row">
                         <button class="apple-btn apple-btn-secondary compact-btn" data-app-action="openEditAccountModal" data-app-arg="${acc.id}">
                           ✏️ Edit
                         </button>

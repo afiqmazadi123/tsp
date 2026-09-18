@@ -150,20 +150,31 @@
     },
 
     async deleteAccount(accountId) {
-      const acc = Accounts.getAccount(accountId);
-      if (!acc) return;
+      const account = Accounts.getAccount(accountId);
+      if (!account) return;
 
       const confirmed = await window.UI?.confirm?.(
-        `Delete sub-account "${acc.name}" (${acc.role})? This cannot be undone.`,
-        { title: 'Delete sub-account', confirmLabel: 'Delete', danger: true }
+        `Delete access for "${account.name}"? Their Supabase login will also be removed.`,
+        { title: 'Delete team access', confirmLabel: 'Delete access', danger: true }
       );
       if (!confirmed) return;
 
-      if (Accounts.deleteAccount(accountId)) {
-        window.UI?.toast?.('Sub-account deleted.', 'success');
-        this.updateAccountUI();
-        this.openAccountSwitcherModal();
+      try {
+        await window.UI.withBusy(
+          () => window.SupabaseEngine.invokeFunction('manage-subaccount', {
+            action: 'delete',
+            accountId
+          }),
+          'Removing team access…'
+        );
+
+        await window.SupabaseEngine.syncDown(false, false);
+        window.UI?.toast?.('Team access removed.', 'success');
+        this.adminActiveTab = 'sub-accounts';
+        this.closeModal();
         this.renderCurrentView();
+      } catch (err) {
+        window.UI?.toast?.(err?.message || 'Unable to remove team access.', 'error');
       }
     },
 
@@ -173,22 +184,40 @@
       if (!modal || !container) return;
 
       container.innerHTML = `
-        <h3 class="modal-title">Add New Team Evaluator / Sub-Account</h3>
-        <form id="new-account-form" class="form-stack">
-          <div>
-            <label class="form-label">Full Name</label>
-            <input type="text" id="new-acc-name" required placeholder="e.g. Sarah Quality Lead" class="select-filter full-width" />
-          </div>
+        <div class="secure-account-form-head">
+          <span class="auth-security-pill">Secure Auth account</span>
+          <h3 class="modal-title">Add Team Access</h3>
+          <p>Create a Supabase login and map its dashboard permissions in one step.</p>
+        </div>
 
-          <div>
-            <label class="form-label">Role & Title</label>
-            <input type="text" id="new-acc-role" required placeholder="e.g. Senior Shift Evaluator" class="select-filter full-width" />
+        <form id="new-account-form" class="form-stack">
+          <div class="form-grid-2">
+            <div>
+              <label class="form-label">Full Name</label>
+              <input type="text" id="new-acc-name" required maxlength="80" placeholder="e.g. Sarah Putri" class="select-filter full-width" />
+            </div>
+            <div>
+              <label class="form-label">Login Email</label>
+              <input type="email" id="new-acc-email" required autocomplete="off" placeholder="name@company.com" class="select-filter full-width" />
+            </div>
           </div>
 
           <div class="form-grid-2">
             <div>
-              <label class="form-label">Access PIN / Password</label>
-              <input type="password" id="new-acc-pin" required autocomplete="new-password" placeholder="Set access PIN" class="select-filter full-width code-input" />
+              <label class="form-label">Role & Title</label>
+              <input type="text" id="new-acc-role" required maxlength="100" placeholder="e.g. Senior Shift Evaluator" class="select-filter full-width" />
+            </div>
+            <div>
+              <label class="form-label">Initial Password</label>
+              <input type="password" id="new-acc-password" minlength="8" required autocomplete="new-password" placeholder="Minimum 8 characters" class="select-filter full-width code-input" />
+              <span class="helper-text">Share this password privately. It is never stored in the dashboard.</span>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div>
+              <label class="form-label">Role Description</label>
+              <input type="text" id="new-acc-desc" maxlength="180" placeholder="e.g. Evening shift evaluator" class="select-filter full-width" />
             </div>
             <div>
               <label class="form-label">Avatar Color</label>
@@ -196,59 +225,83 @@
             </div>
           </div>
 
-          <div>
-            <label class="form-label">Role Description</label>
-            <input type="text" id="new-acc-desc" placeholder="e.g. Evaluator for evening beauty shifts" class="select-filter full-width" />
+          <div class="permission-box">
+            <span class="section-label">Access permissions</span>
+            <label class="checkbox-row">
+              <input type="checkbox" id="new-acc-grade" checked /> Grade and review creators
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="new-acc-rates" /> Manage host hourly rate cards
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="new-acc-payroll" /> Verify and approve payroll
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="new-acc-weights" /> Edit scoring weights
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="new-acc-accounts" /> Manage team accounts & security
+            </label>
           </div>
 
-          <div class="permission-box">
-            <span class="section-label">Permissions:</span>
-            <label class="checkbox-row">
-              <input type="checkbox" id="new-acc-grade" checked /> Can grade and review creators (Evaluator)
-            </label>
-            <label class="checkbox-row">
-              <input type="checkbox" id="new-acc-rates" /> Can manage host hourly rate cards
-            </label>
-            <label class="checkbox-row">
-              <input type="checkbox" id="new-acc-payroll" /> Can verify and approve payroll
-            </label>
-          </div>
+          <div id="new-account-error" class="auth-gate-error" hidden></div>
 
           <div class="form-actions">
-            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Back</button>
-            <button type="submit" class="apple-btn apple-btn-primary">Create Sub-Account</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
+            <button type="submit" class="apple-btn apple-btn-primary" id="new-account-submit">Create Login & Access</button>
           </div>
         </form>
       `;
 
-      document.getElementById('new-account-form').onsubmit = (e) => {
-        e.preventDefault();
-        const name = document.getElementById('new-acc-name').value.trim();
-        const role = document.getElementById('new-acc-role').value.trim();
-        const pin = document.getElementById('new-acc-pin').value.trim() || '1234';
-        const avatarColor = document.getElementById('new-acc-color').value;
-        const description = document.getElementById('new-acc-desc').value.trim() || 'Team Evaluator';
-        const canGrade = document.getElementById('new-acc-grade').checked;
-        const canManageRates = document.getElementById('new-acc-rates').checked;
-        const canApprovePayroll = document.getElementById('new-acc-payroll').checked;
+      const form = document.getElementById('new-account-form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-        const newAcc = Accounts.addAccount({
-          name,
-          role,
-          pin,
-          avatarColor,
-          description,
-          canGrade,
-          canManageRates,
-          canApprovePayroll,
-          roleType: canGrade ? 'evaluator' : 'operator'
-        });
+        const submit = document.getElementById('new-account-submit');
+        const errorBox = document.getElementById('new-account-error');
+        const payload = {
+          action: 'create',
+          name: document.getElementById('new-acc-name').value.trim(),
+          email: document.getElementById('new-acc-email').value.trim(),
+          password: document.getElementById('new-acc-password').value,
+          role: document.getElementById('new-acc-role').value.trim(),
+          avatarColor: document.getElementById('new-acc-color').value,
+          description: document.getElementById('new-acc-desc').value.trim(),
+          canGrade: document.getElementById('new-acc-grade').checked,
+          canManageRates: document.getElementById('new-acc-rates').checked,
+          canApprovePayroll: document.getElementById('new-acc-payroll').checked,
+          canEditWeights: document.getElementById('new-acc-weights').checked,
+          canManageAccounts: document.getElementById('new-acc-accounts').checked
+        };
 
-        window.UI?.toast?.(`Sub-account ${newAcc.name} created.`, 'success');
-        this.updateAccountUI();
-        this.closeModal();
-        this.renderCurrentView();
-      };
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent = 'Creating secure access…';
+        }
+        if (errorBox) errorBox.hidden = true;
+
+        try {
+          await window.SupabaseEngine.invokeFunction('manage-subaccount', payload);
+          document.getElementById('new-acc-password').value = '';
+          await window.SupabaseEngine.syncDown(false, false);
+
+          window.UI?.toast?.(`Secure login created for ${payload.name}.`, 'success');
+          this.adminActiveTab = 'sub-accounts';
+          this.closeModal();
+          this.renderCurrentView();
+        } catch (err) {
+          if (errorBox) {
+            errorBox.textContent = err?.message || 'Unable to create team access.';
+            errorBox.hidden = false;
+          }
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent = 'Create Login & Access';
+          }
+        }
+      });
+
+      modal.classList.add('active');
     },
 
     openEditAccountModal(accountId) {
@@ -274,8 +327,12 @@
 
           <div class="form-grid-2">
             <div>
-              <label class="form-label">PIN / Password</label>
-              <input type="password" id="edit-acc-pin" value="" autocomplete="new-password" placeholder="Leave blank to keep current PIN" class="select-filter full-width code-input" />
+              <label class="form-label">Authentication</label>
+              <div class="auth-status-field">
+                <span class="auth-status-dot"></span>
+                <strong>${acc.auth_user_id ? 'Supabase Auth linked' : 'Not linked'}</strong>
+              </div>
+              <span class="helper-text">Passwords are managed by Supabase Auth and are never shown here.</span>
             </div>
             <div>
               <label class="form-label">Avatar Color</label>
@@ -300,7 +357,10 @@
               <input type="checkbox" id="edit-acc-payroll" ${acc.canApprovePayroll ? 'checked' : ''} /> Can verify and approve payroll
             </label>
             <label class="checkbox-row">
-              <input type="checkbox" id="edit-acc-accounts" ${acc.canManageAccounts ? 'checked' : ''} /> Can manage sub-accounts & security
+              <input type="checkbox" id="edit-acc-weights" ${acc.canEditWeights ? 'checked' : ''} /> Can edit scoring weights
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="edit-acc-accounts" ${acc.canManageAccounts ? 'checked' : ''} /> Can manage team accounts & security
             </label>
           </div>
 
@@ -315,12 +375,12 @@
         e.preventDefault();
         const name = document.getElementById('edit-acc-name').value.trim();
         const role = document.getElementById('edit-acc-role').value.trim();
-        const pin = document.getElementById('edit-acc-pin').value.trim();
         const avatarColor = document.getElementById('edit-acc-color').value;
         const description = document.getElementById('edit-acc-desc').value.trim();
         const canGrade = document.getElementById('edit-acc-grade').checked;
         const canManageRates = document.getElementById('edit-acc-rates').checked;
         const canApprovePayroll = document.getElementById('edit-acc-payroll').checked;
+        const canEditWeights = document.getElementById('edit-acc-weights').checked;
         const canManageAccounts = document.getElementById('edit-acc-accounts').checked;
 
         const accountUpdates = {
@@ -331,9 +391,9 @@
           canGrade,
           canManageRates,
           canApprovePayroll,
+          canEditWeights,
           canManageAccounts
         };
-        if (pin) accountUpdates.pin = pin;
         Accounts.updateAccount(accountId, accountUpdates);
 
         this.updateAccountUI();

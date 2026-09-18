@@ -95,6 +95,30 @@
       return type.includes('application/json') ? response.json() : response.text();
     },
 
+    async invokeFunction(name, payload = {}) {
+      if (!this.url || !this.anonKey) throw new Error('Supabase is not configured.');
+      const accessToken = window.SupabaseAuth?.getAccessToken?.();
+      if (!accessToken) throw new Error('Authentication required.');
+
+      const response = await fetch(`${this.url}/functions/v1/${encodeURIComponent(name)}`, {
+        method: 'POST',
+        headers: {
+          apikey: this.anonKey,
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let body = null;
+      try { body = await response.json(); } catch (_) {}
+
+      if (!response.ok) {
+        throw new Error(body?.error || body?.message || `Secure action failed (${response.status})`);
+      }
+      return body || {};
+    },
+
     async testConnection() {
       if (!this.url || !this.anonKey) {
         return { success: false, message: 'Project URL and Anon Key must not be empty.' };
@@ -120,7 +144,7 @@
       return timeStr;
     },
 
-    async syncDown(showToasts = true) {
+    async syncDown(showToasts = true, render = true) {
       if (!this.isConnected) return false;
 
       try {
@@ -130,14 +154,22 @@
           this.request('host_rates?select=*')
         ]);
 
-        if (Array.isArray(accounts) && accounts.length && window.Accounts) {
-          window.Accounts.accounts = accounts;
-          localStorage.setItem('fyc_sub_accounts', JSON.stringify(accounts));
+        if (Array.isArray(accounts) && window.Accounts) {
+          const secureMode = !!window.SupabaseAuth?.isAuthenticated?.();
+          const visibleAccounts = secureMode
+            ? accounts.filter(account => !!account.auth_user_id)
+            : accounts;
 
-          const migrated = await window.Accounts.migrateLegacyPins();
-          if (migrated) {
-            await Promise.all(window.Accounts.getAccounts().map(account => this.saveAccount(account)));
+          window.Accounts.accounts = visibleAccounts;
+          localStorage.setItem('fyc_sub_accounts', JSON.stringify(visibleAccounts));
+
+          if (!secureMode) {
+            const migrated = await window.Accounts.migrateLegacyPins();
+            if (migrated) {
+              await Promise.all(window.Accounts.getAccounts().map(account => this.saveAccount(account)));
+            }
           }
+
           await window.SupabaseAuth?.bindLocalAccount?.();
         }
 
@@ -156,7 +188,7 @@
         this.stampSyncTime();
         window.AppStore?.invalidate();
 
-        if (window.App?.renderCurrentView) {
+        if (render && window.App?.renderCurrentView) {
           window.App.updateAccountUI?.();
           window.App.renderCurrentView();
         }

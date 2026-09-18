@@ -348,6 +348,9 @@
         return;
       }
 
+      // Hydrate the authenticated team roster from the cloud before any Admin UI renders.
+      // This also drops stale LocalStorage-only accounts from the legacy PIN system.
+      await window.SupabaseEngine?.syncDown?.(false, false);
       await window.DataLoader.load();
       window.AuthGate?.unlockApp?.();
       App.init();
