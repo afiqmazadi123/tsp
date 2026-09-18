@@ -2101,3 +2101,84 @@ body.auth-pending > .ambient-glow {
     0 2px 8px rgba(0,0,0,.24),
     0 0 0 1px rgba(0,113,227,.22);
 }
+
+
+/* ==========================================================================
+   FYC brand identity
+   ========================================================================== */
+
+.brand-badge-logo {
+  width: 46px;
+  height: 36px;
+  padding: 2px;
+  border-radius: 9px;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.brand-badge-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.24));
+}
+
+.auth-gate-logo-brand {
+  width: 62px;
+  height: 46px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-gate-logo-brand img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 5px 12px rgba(0,0,0,.26));
+}
+
+.pitch-hero-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.pitch-fyc-logo {
+  width: 76px;
+  height: auto;
+  flex: none;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+}
+
+.report-fyc-logo {
+  width: 72px;
+  height: auto;
+  object-fit: contain;
+  flex: none;
+}
+
+.print-header {
+  align-items: center;
+  gap: 16px;
+}
+
+[data-theme="light"] .brand-badge-logo img,
+[data-theme="light"] .auth-gate-logo-brand img,
+[data-theme="light"] .pitch-fyc-logo {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.16));
+}
+
+@media (max-width: 600px) {
+  .pitch-hero-brand {
+    gap: 10px;
+  }
+
+  .pitch-fyc-logo {
+    width: 58px;
+  }
+}
