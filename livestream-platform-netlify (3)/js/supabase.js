@@ -155,7 +155,7 @@
         return true;
       } catch (err) {
         console.warn('Supabase sync failed:', err);
-        if (showToasts) alert('Cloud sync failed: ' + err.message);
+        if (showToasts) window.UI?.toast?.('Cloud sync failed: ' + err.message, 'error');
         return false;
       }
     },
