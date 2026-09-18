@@ -77,13 +77,20 @@
 
     async authRequest(path, body, accessToken = '') {
       const { url, anonKey } = this.getConfig();
+      const headers = {
+        apikey: anonKey,
+        'Content-Type': 'application/json'
+      };
+
+      // Supabase publishable keys are API keys, not JWTs.
+      // Only send Authorization when we actually have a signed-in user's access token.
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
       const response = await fetch(`${url}/auth/v1/${path}`, {
         method: 'POST',
-        headers: {
-          apikey: anonKey,
-          Authorization: `Bearer ${accessToken || anonKey}`,
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: body ? JSON.stringify(body) : undefined
       });
 
