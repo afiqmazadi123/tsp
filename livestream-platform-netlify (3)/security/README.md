@@ -5,12 +5,12 @@ The dashboard remains backward-compatible with the existing anon-key sync model.
 ## Migration order
 
 1. In Supabase Authentication, create/invite the team users.
-2. Copy each user's Auth UUID.
-3. Add/map the UUID to the matching dashboard account:
+2. Run **only the Stage A ALTER TABLE** at the top of `security/supabase-auth-rls.sql`. This safely adds `auth_user_id` without changing current policies.
+3. Copy each user's Auth UUID and map it:
    `UPDATE public.sub_accounts SET auth_user_id = '<AUTH_UUID>' WHERE id = 'acc_afiq';`
 4. Deploy the Phase 3 frontend.
-5. In **Admin → Cloud & Storage → Secure Supabase Auth**, sign in with one mapped account and confirm cloud reads work.
-6. Run `security/supabase-auth-rls.sql`.
+5. In **Admin → Cloud & Storage → Secure Supabase Auth**, sign in with one mapped Admin and confirm cloud reads work.
+6. Run the **entire** `security/supabase-auth-rls.sql` file to activate authenticated-only policies.
 7. Confirm anonymous requests now fail and authenticated requests follow dashboard permissions.
 
 ## Behavior after secure RLS
