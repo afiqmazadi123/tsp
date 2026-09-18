@@ -1,5 +1,48 @@
 # FYC Live Ops Dashboard ⚡
 
+## Secure Login & Private Session Data
+
+Production access now uses a mandatory Supabase Auth gate.
+
+- The dashboard does **not initialize** before authentication succeeds.
+- A valid Supabase Auth user must also be mapped to `sub_accounts.auth_user_id`.
+- Unmapped authenticated users are denied workspace access.
+- The 1,798 livestream session rows live in the RLS-protected `public.livestream_sessions` table.
+- The deploy no longer includes `data/sessions.json`.
+- Private session data is not persisted to browser LocalStorage.
+- CSV / Google Sheet imports are written back to Supabase and require Admin permission.
+- Signing out clears the in-memory session dataset and authentication session.
+
+### First Admin setup
+
+Before deploying the secure-login build:
+
+1. Open Supabase Dashboard → Authentication → Users.
+2. Create the first Admin user using the official Supabase Auth UI.
+3. Copy that user's UUID.
+4. Map it to the seeded Admin dashboard account:
+
+```sql
+UPDATE public.sub_accounts
+SET auth_user_id = '<AUTH_USER_UUID>'
+WHERE id = 'acc_afiq';
+```
+
+5. Confirm the mapping:
+
+```sql
+SELECT id, name, auth_user_id
+FROM public.sub_accounts
+WHERE id = 'acc_afiq';
+```
+
+After this mapping exists, the secure-login frontend can be deployed safely.
+
+> Do not create users by manually inserting rows into `auth.users`. Use Supabase Authentication so password hashes, identities, confirmation state, and auth metadata are managed correctly.
+
+---
+
+
 Dashboard operasional untuk monitoring performa livestream TikTok & Shopee: GMV, live hours, host performance, brand contribution, assessment, payroll, reporting, dan data sync.
 
 Master data bawaan berisi **1.798 livestream sessions** dan dapat diganti melalui CSV / Google Sheet sync.
