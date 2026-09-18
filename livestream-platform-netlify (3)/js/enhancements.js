@@ -263,7 +263,7 @@
       if (meta) meta.innerHTML = deltaMarkup(comparison ? deltaPct(kpis.totalGMV, comparison.kpis.totalGMV) : null, range === 'all' ? 'Full dataset' : 'No prior data');
       cards[0].classList.add('kpi-clickable');
       cards[0].title = 'Open live analytics';
-      cards[0].onclick = () => App.switchView('analytics');
+      cards[0].addEventListener('click', () => App.switchView('analytics'));
     }
 
     if (cards[2]) {
@@ -271,13 +271,13 @@
       if (meta) meta.innerHTML = deltaMarkup(comparison ? deltaPct(kpis.avgGmvHour, comparison.kpis.avgGmvHour) : null, range === 'all' ? 'Full dataset' : 'No prior data');
       cards[2].classList.add('kpi-clickable');
       cards[2].title = 'Open live analytics';
-      cards[2].onclick = () => App.switchView('analytics');
+      cards[2].addEventListener('click', () => App.switchView('analytics'));
     }
 
     if (cards[3]) {
       cards[3].classList.add('kpi-clickable');
       cards[3].title = 'Open host performance';
-      cards[3].onclick = () => App.switchView('hosts');
+      cards[3].addEventListener('click', () => App.switchView('hosts'));
     }
 
     const topHost = (data.scoredHosts || [])[0];
