@@ -360,7 +360,7 @@
           </div>
           <h3 style="font-size:18px;font-weight:700">Enter PIN for ${targetAcc.name}</h3>
           <p style="font-size:12px;color:var(--text-tertiary);margin-top:4px;margin-bottom:16px;">
-            Role: ${targetAcc.role} (Default PIN: 1234)
+            Role: ${targetAcc.role}
           </p>
 
           <form id="verify-pin-form" style="display:flex;flex-direction:column;gap:14px;max-width:240px;margin:0 auto;">
@@ -375,15 +375,27 @@
         </div>
       `;
 
-      document.getElementById('verify-pin-form').onsubmit = (e) => {
+      document.getElementById('verify-pin-form').onsubmit = async (e) => {
         e.preventDefault();
-        const pin = document.getElementById('input-account-pin').value;
-        if (Accounts.verifyPin(targetAccountId, pin)) {
+        const pinInput = document.getElementById('input-account-pin');
+        const errorEl = document.getElementById('pin-error-msg');
+        const submitBtn = e.submitter;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Checking…';
+        }
+
+        const valid = await Accounts.verifyPin(targetAccountId, pinInput.value);
+        if (valid) {
           this.selectAccount(targetAccountId);
         } else {
-          document.getElementById('pin-error-msg').style.display = 'block';
-          document.getElementById('input-account-pin').value = '';
-          document.getElementById('input-account-pin').focus();
+          if (errorEl) errorEl.style.display = 'block';
+          pinInput.value = '';
+          pinInput.focus();
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Unlock & Switch';
+          }
         }
       };
 
@@ -434,7 +446,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
               <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Access PIN / Password</label>
-              <input type="text" id="new-acc-pin" value="1234" required class="select-filter" style="width:100%;font-family:monospace" />
+              <input type="password" id="new-acc-pin" required autocomplete="new-password" placeholder="Set access PIN" class="select-filter" style="width:100%;font-family:monospace" />
             </div>
             <div>
               <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Avatar Color</label>
@@ -521,7 +533,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div>
               <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">PIN / Password</label>
-              <input type="text" id="edit-acc-pin" value="${acc.pin || ''}" placeholder="Set PIN..." class="select-filter" style="width:100%;font-family:monospace" />
+              <input type="password" id="edit-acc-pin" value="" autocomplete="new-password" placeholder="Leave blank to keep current PIN" class="select-filter" style="width:100%;font-family:monospace" />
             </div>
             <div>
               <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Avatar Color</label>
@@ -569,17 +581,18 @@
         const canApprovePayroll = document.getElementById('edit-acc-payroll').checked;
         const canManageAccounts = document.getElementById('edit-acc-accounts').checked;
 
-        Accounts.updateAccount(accountId, {
+        const accountUpdates = {
           name,
           role,
-          pin,
           avatarColor,
           description,
           canGrade,
           canManageRates,
           canApprovePayroll,
           canManageAccounts
-        });
+        };
+        if (pin) accountUpdates.pin = pin;
+        Accounts.updateAccount(accountId, accountUpdates);
 
         this.updateAccountUI();
         this.closeModal();
@@ -594,44 +607,53 @@
       const container = document.getElementById('view-render-area');
       if (!container) return;
 
-      const sessions = Analytics.getFilteredSessions();
-      const kpis = Analytics.calculateKPIs(sessions);
-      const hostAggs = Analytics.getHostAggregates(sessions);
-      const scoredHosts = Scoring.computeAllHostScores(hostAggs);
-      const brandBreakdown = Analytics.getBrandBreakdown(sessions);
-      const platformComp = Analytics.getPlatformComparison(sessions);
-      const gmvTrend = Analytics.getGMVTrend(sessions);
+      let data;
+      if (window.AppStore) {
+        data = window.AppStore.viewData(this.currentView);
+      } else {
+        const sessions = Analytics.getFilteredSessions();
+        const hostAggs = Analytics.getHostAggregates(sessions);
+        data = {
+          sessions,
+          kpis: Analytics.calculateKPIs(sessions),
+          hostAggs,
+          scoredHosts: Scoring.computeAllHostScores(hostAggs),
+          brandBreakdown: Analytics.getBrandBreakdown(sessions),
+          platformComp: Analytics.getPlatformComparison(sessions),
+          gmvTrend: Analytics.getGMVTrend(sessions)
+        };
+      }
 
       switch (this.currentView) {
         case 'dashboard':
-          this.renderDashboardView(container, { kpis, scoredHosts, brandBreakdown, platformComp, gmvTrend, sessions });
+          this.renderDashboardView(container, data);
           break;
         case 'analytics':
-          this.renderAnalyticsView(container, { sessions, platformComp });
+          this.renderAnalyticsView(container, data);
           break;
         case 'hosts':
-          this.renderHostsView(container, { scoredHosts, sessions });
+          this.renderHostsView(container, data);
           break;
         case 'brands':
-          this.renderBrandsView(container, { brandBreakdown, scoredHosts, sessions });
+          this.renderBrandsView(container, data);
           break;
         case 'payroll':
-          this.renderPayrollView(container, { hostAggs });
+          this.renderPayrollView(container, data);
           break;
         case 'assessment':
-          this.renderAssessmentView(container, { scoredHosts });
+          this.renderAssessmentView(container, data);
           break;
         case 'reports':
-          this.renderReportsView(container, { kpis, scoredHosts, brandBreakdown, platformComp, sessions });
+          this.renderReportsView(container, data);
           break;
         case 'admin':
-          this.renderAdminView(container, { scoredHosts });
+          this.renderAdminView(container, data);
           break;
         case 'settings':
           this.renderSettingsView(container);
           break;
         default:
-          this.renderDashboardView(container, { kpis, scoredHosts, brandBreakdown, platformComp, gmvTrend, sessions });
+          this.renderDashboardView(container, window.AppStore ? window.AppStore.viewData('dashboard') : data);
       }
     },
 
@@ -1691,10 +1713,7 @@
                       <span class="tier-badge" style="background:rgba(0,113,227,0.15);color:var(--apple-cyan)">${acc.role}</span>
                     </td>
                     <td>
-                      <span class="pin-display-mask" id="pin-mask-${acc.id}">${acc.pin ? '••••' : 'No PIN'}</span>
-                      ${acc.pin ? `
-                        <button class="review-action-btn" style="margin-left:6px;" onclick="App.togglePinVisibility('${acc.id}', '${acc.pin}')">View</button>
-                      ` : ''}
+                      <span class="pin-display-mask">${Accounts.hasPin(acc) ? 'Protected' : 'No PIN'}</span>
                     </td>
                     <td>
                       <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -2536,5 +2555,9 @@
   };
 
   window.App = App;
-  document.addEventListener('DOMContentLoaded', () => App.init());
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (window.DataLoader?.ready) await window.DataLoader.ready;
+    if (window.Accounts?.ready) await window.Accounts.ready;
+    App.init();
+  });
 })(window);
