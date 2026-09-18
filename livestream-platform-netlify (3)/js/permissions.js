@@ -36,7 +36,7 @@
       container.querySelector('[data-close-permission-modal]')?.addEventListener('click', () => App.closeModal());
       modal.classList.add('active');
     } else {
-      alert(message);
+      window.UI?.toast?.(message, 'warning');
     }
 
     return false;
