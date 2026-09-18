@@ -1,11 +1,15 @@
 /**
- * Optional Supabase Auth runtime.
- * Backward compatible: the app continues to work in anon mode until a user signs in.
+ * Required Supabase Auth runtime.
+ * Dashboard access is granted only to authenticated users mapped to sub_accounts.auth_user_id.
  */
 (function(window) {
   'use strict';
 
   const STORAGE_KEY = 'fyc_supabase_auth_session';
+  const DEFAULT_CONFIG = {
+    url: 'https://htckrzrpukospxokkgvd.supabase.co',
+    anonKey: 'sb_publishable__ZXAk3Mj4U6zWwjQqIuvsg_JZrLbiQT'
+  };
 
   const SupabaseAuth = {
     session: null,
@@ -20,6 +24,7 @@
         }
       } catch (err) {
         console.warn('Unable to restore Supabase auth session:', err);
+        localStorage.removeItem(STORAGE_KEY);
       }
 
       this.ready = this.ensureFreshSession();
@@ -30,11 +35,11 @@
       try {
         const parsed = JSON.parse(localStorage.getItem('fyc_supabase_config') || '{}');
         return {
-          url: String(parsed.url || '').replace(/\/$/, ''),
-          anonKey: String(parsed.anonKey || '')
+          url: String(parsed.url || DEFAULT_CONFIG.url).replace(/\/$/, ''),
+          anonKey: String(parsed.anonKey || DEFAULT_CONFIG.anonKey)
         };
       } catch (_) {
-        return { url: '', anonKey: '' };
+        return { ...DEFAULT_CONFIG };
       }
     },
 
@@ -72,8 +77,6 @@
 
     async authRequest(path, body, accessToken = '') {
       const { url, anonKey } = this.getConfig();
-      if (!url || !anonKey) throw new Error('Configure Supabase URL and anon key first.');
-
       const response = await fetch(`${url}/auth/v1/${path}`, {
         method: 'POST',
         headers: {
@@ -105,7 +108,6 @@
       const session = this.normalizeSession(payload);
       if (!session) throw new Error('Supabase returned an invalid authentication session.');
       this.persist(session);
-      await this.bindLocalAccount();
       return session;
     },
 
@@ -124,10 +126,7 @@
 
     async ensureFreshSession() {
       if (!this.isAuthenticated()) return null;
-      if (!this.isExpiringSoon()) {
-        await this.bindLocalAccount();
-        return this.session;
-      }
+      if (!this.isExpiringSoon()) return this.session;
 
       try {
         return await this.refresh();
@@ -138,28 +137,65 @@
       }
     },
 
+    async fetchMappedAccount() {
+      if (!this.isAuthenticated()) return null;
+      await this.ensureFreshSession();
+
+      const userId = this.getUser()?.id;
+      if (!userId) return null;
+
+      const { url, anonKey } = this.getConfig();
+      const response = await fetch(
+        `${url}/rest/v1/sub_accounts?select=*&auth_user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+        {
+          headers: {
+            apikey: anonKey,
+            Authorization: `Bearer ${this.getAccessToken()}`,
+            Accept: 'application/json'
+          },
+          cache: 'no-store'
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Account authorization check failed (${response.status})`);
+      }
+
+      const rows = await response.json();
+      return Array.isArray(rows) ? rows[0] || null : null;
+    },
+
+    async bindLocalAccount() {
+      const mapped = await this.fetchMappedAccount();
+      if (!mapped || !window.Accounts) return null;
+
+      const idx = window.Accounts.accounts.findIndex(account => account.id === mapped.id);
+      if (idx >= 0) {
+        window.Accounts.accounts[idx] = { ...window.Accounts.accounts[idx], ...mapped, pin: '' };
+      } else {
+        window.Accounts.accounts.push({ ...mapped, pin: '' });
+      }
+
+      window.Accounts.persist();
+      window.Accounts.switchAccount(mapped.id);
+      window.App?.updateAccountUI?.();
+      return window.Accounts.getAccount(mapped.id);
+    },
+
     async signOut() {
-      if (this.isAuthenticated()) {
+      const token = this.getAccessToken();
+      if (token) {
         try {
-          await this.authRequest('logout', null, this.getAccessToken());
+          await this.authRequest('logout', null, token);
         } catch (err) {
           console.warn('Remote sign-out failed:', err);
         }
       }
+
       this.persist(null);
+      window.DataLoader?.clearSensitiveCache?.();
+      window.MASTER_SESSIONS = [];
       return true;
-    },
-
-    async bindLocalAccount() {
-      const userId = this.getUser()?.id;
-      if (!userId || !window.Accounts?.getAccounts) return null;
-
-      const match = window.Accounts.getAccounts().find(account => account.auth_user_id === userId);
-      if (match) {
-        window.Accounts.switchAccount(match.id);
-        window.App?.updateAccountUI?.();
-      }
-      return match || null;
     }
   };
 
