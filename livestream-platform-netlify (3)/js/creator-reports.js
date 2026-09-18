@@ -779,7 +779,7 @@
                 </label>
                 <label>
                   <span>Target / jam</span>
-                  <input type="number" min="0" step="10000" data-field="target_per_hour" value="${Number(row.target_per_hour || 0)}" />
+                  <input type="number" min="0" step="10000" data-field="target_per_hour" value="${Number(row.target_per_hour || 0)}" readonly title="Automatically derived from target per 2-hour session" />
                 </label>
                 <label>
                   <span>Jam / hari</span>
@@ -817,7 +817,7 @@
           return {
             ...row,
             target_per_session: Number(value('target_per_session') || 0),
-            target_per_hour: Number(value('target_per_hour') || 0),
+            target_per_hour: Number(value('target_per_session') || 0) / Math.max(1, Number(row.session_hours || 2)),
             recommended_hours_min: Number(value('recommended_hours_min') || 0),
             recommended_hours_max: Number(value('recommended_hours_max') || 0),
             status: value('status') || 'active',
