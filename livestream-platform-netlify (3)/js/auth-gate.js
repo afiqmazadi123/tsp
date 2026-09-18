@@ -33,8 +33,8 @@
       root.innerHTML = `
         <div class="auth-gate-shell">
           <div class="auth-gate-brand">
-            <div class="auth-gate-logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <div class="auth-gate-logo auth-gate-logo-brand" aria-hidden="true">
+              <img src="assets/fyc-logo.svg" alt="" />
             </div>
             <div>
               <strong>FYC Live Ops</strong>
