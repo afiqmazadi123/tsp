@@ -90,6 +90,10 @@ document.addEventListener('input', (event) => {
 document.addEventListener('change', (event) => {
   const target = event.target;
 
+  if (target?.matches?.('[data-weight-section][data-weight-key]')) {
+    window.App?.commitWeightChange?.();
+  }
+
   if (target?.matches?.('[data-reviewer-filter]')) {
     window.App?.filterReviewsByReviewer?.(target.value);
   }
