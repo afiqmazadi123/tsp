@@ -14,9 +14,11 @@
       if (!drawer) return;
 
       const allAggs = window.AppStore?.hostAggs || Analytics.getHostAggregates(Analytics.getFilteredSessions());
-      const scored = Scoring.computeAllHostScores(allAggs).find(h => h.name.toLowerCase() === hostName.toLowerCase());
+      const currentAcc = Accounts.getCurrentAccount();
+      const assessmentMonth = this.assessmentMonth || Scoring.getCurrentMonth();
+      const scored = Scoring.computeAllHostScores(allAggs, assessmentMonth).find(h => h.name.toLowerCase() === hostName.toLowerCase());
       const rateHistory = Payroll.getHostRateHistory(hostName);
-      const reviews = Scoring.getHostReviews(hostName);
+      const reviews = Scoring.getHostReviews(hostName, assessmentMonth);
       const currentRate = Payroll.getHostRate(hostName);
 
       const content = document.getElementById('drawer-content-area');
@@ -90,8 +92,10 @@
                   <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;">${r.date}</span>
                     <span class="assessment-cycle-badge ${r.cycle === 'end_month' ? 'end' : 'mid'}">${Scoring.getCycleLabel(r.cycle || Scoring.getCycleForDate(r.date))}</span>
-                    <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">✏️ Edit</button>
-                    <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">✕</button>
+                    ${(r.reviewer_account_id === currentAcc.id || currentAcc.canManageAccounts) ? `
+                      <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">✏️ Edit</button>
+                      <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">✕</button>
+                    ` : '<span class="helper-text">Read only</span>'}
                   </div>
                 </div>
                 <div style="font-size:11.5px;color:var(--apple-yellow);margin:6px 0;">
@@ -151,7 +155,6 @@
       if (!modal || !container) return;
 
       const hosts = window.MASTER_HOST_PROFILES || [];
-      const reviewerAccounts = Accounts.getReviewerAccounts();
       const currentAcc = Accounts.getCurrentAccount();
 
       const assessmentMonth = this.assessmentMonth || Scoring.getCurrentMonth();
