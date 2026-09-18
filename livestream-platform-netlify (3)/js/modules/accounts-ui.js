@@ -261,7 +261,7 @@
           roleType: canGrade ? 'evaluator' : 'operator'
         });
 
-        Accounts.switchAccount(newAcc.id);
+        window.UI?.toast?.(`Sub-account ${newAcc.name} created.`, 'success');
         this.updateAccountUI();
         this.closeModal();
         this.renderCurrentView();
