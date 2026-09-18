@@ -35,11 +35,31 @@
         this.assessments = JSON.parse(JSON.stringify(window.MASTER_ASSESSMENTS));
       }
 
-      // Ensure every assessment has a unique ID
+      // Normalize legacy assessment records into the twice-monthly cycle model.
       let modified = false;
       this.assessments.forEach((a, idx) => {
         if (!a.id) {
           a.id = 'rev_' + (idx + 1) + '_' + Math.random().toString(36).substring(2, 7);
+          modified = true;
+        }
+
+        const assessmentDate = a.date || new Date().toISOString().split('T')[0];
+        const month = this.normalizeMonth(a.assessment_month || assessmentDate.slice(0, 7));
+        const cycle = a.cycle || this.getCycleForDate(assessmentDate);
+        const reviewerAccount = window.Accounts?.getAccounts?.().find(
+          account => String(account.name || '').toLowerCase() === String(a.reviewer || '').toLowerCase()
+        );
+
+        if (a.assessment_month !== month) {
+          a.assessment_month = month;
+          modified = true;
+        }
+        if (a.cycle !== cycle) {
+          a.cycle = cycle;
+          modified = true;
+        }
+        if (!a.reviewer_account_id && reviewerAccount?.id) {
+          a.reviewer_account_id = reviewerAccount.id;
           modified = true;
         }
       });
@@ -152,53 +172,157 @@
       localStorage.setItem('fyc_scoring_weights', JSON.stringify(this.weights));
     },
 
+    normalizeMonth(value) {
+      const raw = String(value || '').trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw.slice(0, 7) + '-01';
+      if (/^\d{4}-\d{2}$/.test(raw)) return raw + '-01';
+
+      const date = raw ? new Date(raw) : new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${year}-${month}-01`;
+    },
+
+    getCurrentMonth() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    },
+
+    getCycleForDate(value = new Date()) {
+      const date = value instanceof Date ? value : new Date(`${value}T12:00:00`);
+      return date.getDate() <= 15 ? 'mid_month' : 'end_month';
+    },
+
+    getCycleLabel(cycle) {
+      return cycle === 'end_month' ? 'End-Month' : 'Mid-Month';
+    },
+
+    getCycleDateLabel(month, cycle) {
+      const normalized = this.normalizeMonth(month);
+      const [year, monthNumber] = normalized.split('-').map(Number);
+      const endDay = new Date(year, monthNumber, 0).getDate();
+      return cycle === 'end_month'
+        ? `16–${endDay}`
+        : '1–15';
+    },
+
     getAssessmentById(id) {
       return this.assessments.find(a => a.id === id);
     },
 
-    getHostReviews(hostName) {
-      return this.assessments.filter(a => a.host.toLowerCase() === hostName.toLowerCase());
+    getReviewsForMonth(month) {
+      const normalized = this.normalizeMonth(month || this.getCurrentMonth());
+      return this.assessments.filter(a => this.normalizeMonth(a.assessment_month || a.date) === normalized);
     },
 
-    getReviewsByReviewer(reviewerName) {
-      return this.assessments.filter(a => a.reviewer.toLowerCase() === reviewerName.toLowerCase());
+    getReviewsForCycle(month, cycle) {
+      return this.getReviewsForMonth(month).filter(a => (a.cycle || this.getCycleForDate(a.date)) === cycle);
     },
 
-    getHostReviewByReviewer(hostName, reviewerName) {
-      return this.assessments.find(
-        a => a.host.toLowerCase() === hostName.toLowerCase() &&
-             a.reviewer.toLowerCase() === reviewerName.toLowerCase()
+    getHostReviews(hostName, month = null) {
+      const source = month ? this.getReviewsForMonth(month) : this.assessments;
+      return source.filter(a => String(a.host || '').toLowerCase() === String(hostName || '').toLowerCase());
+    },
+
+    getReviewsByReviewer(reviewerName, month = null, cycle = null) {
+      let source = month ? this.getReviewsForMonth(month) : this.assessments;
+      if (cycle) source = source.filter(a => (a.cycle || this.getCycleForDate(a.date)) === cycle);
+      return source.filter(a => String(a.reviewer || '').toLowerCase() === String(reviewerName || '').toLowerCase());
+    },
+
+    getHostReviewByReviewer(hostName, reviewerName, month = null, cycle = null) {
+      let source = this.getHostReviews(hostName, month);
+      if (cycle) source = source.filter(a => (a.cycle || this.getCycleForDate(a.date)) === cycle);
+
+      return source.find(
+        a => String(a.reviewer || '').toLowerCase() === String(reviewerName || '').toLowerCase()
       );
+    },
+
+    getReviewerMonthlySummaries(hostName, month) {
+      const reviews = this.getHostReviews(hostName, month);
+      const groups = new Map();
+
+      reviews.forEach(review => {
+        const key = review.reviewer_account_id || String(review.reviewer || '').toLowerCase();
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(review);
+      });
+
+      return Array.from(groups.values()).map(reviewerReviews => {
+        const count = reviewerReviews.length || 1;
+        const avg = field => reviewerReviews.reduce((sum, item) => sum + (parseFloat(item[field]) || 4), 0) / count;
+        const cycles = new Set(reviewerReviews.map(item => item.cycle || this.getCycleForDate(item.date)));
+
+        return {
+          reviewer: reviewerReviews[0]?.reviewer || 'Reviewer',
+          reviewer_account_id: reviewerReviews[0]?.reviewer_account_id || null,
+          cta: avg('cta'),
+          pin: avg('pin'),
+          discipline: avg('discipline'),
+          grooming: avg('grooming'),
+          cycleCount: cycles.size,
+          completedBothCycles: cycles.has('mid_month') && cycles.has('end_month'),
+          reviews: reviewerReviews
+        };
+      });
     },
 
     addAssessment(review) {
-      review.id = review.id || ('rev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6));
-      review.date = review.date || new Date().toISOString().split('T')[0];
-      review.cta = parseFloat(review.cta) || 4.0;
-      review.pin = parseFloat(review.pin) || 4.0;
-      review.discipline = parseFloat(review.discipline) || 4.0;
-      review.grooming = parseFloat(review.grooming) || 4.0;
-      review.notes = (review.notes || '').trim();
+      const assessmentDate = review.date || new Date().toISOString().split('T')[0];
+      const assessmentMonth = this.normalizeMonth(review.assessment_month || assessmentDate.slice(0, 7));
+      const cycle = review.cycle || this.getCycleForDate(assessmentDate);
+      const reviewerAccount = review.reviewer_account_id
+        ? window.Accounts?.getAccount?.(review.reviewer_account_id)
+        : window.Accounts?.getAccounts?.().find(
+            account => String(account.name || '').toLowerCase() === String(review.reviewer || '').toLowerCase()
+          );
 
-      // Check if this reviewer already has a review for this host
-      const existingIdx = this.assessments.findIndex(
-        a => a.host.toLowerCase() === review.host.toLowerCase() &&
-             a.reviewer.toLowerCase() === review.reviewer.toLowerCase()
-      );
+      const normalized = {
+        ...review,
+        date: assessmentDate,
+        assessment_month: assessmentMonth,
+        cycle,
+        reviewer_account_id: review.reviewer_account_id || reviewerAccount?.id || null,
+        cta: parseFloat(review.cta) || 4.0,
+        pin: parseFloat(review.pin) || 4.0,
+        discipline: parseFloat(review.discipline) || 4.0,
+        grooming: parseFloat(review.grooming) || 4.0,
+        notes: (review.notes || '').trim()
+      };
 
+      const existingIdx = this.assessments.findIndex(a => {
+        const sameHost = String(a.host || '').toLowerCase() === String(normalized.host || '').toLowerCase();
+        const sameReviewer = normalized.reviewer_account_id && a.reviewer_account_id
+          ? a.reviewer_account_id === normalized.reviewer_account_id
+          : String(a.reviewer || '').toLowerCase() === String(normalized.reviewer || '').toLowerCase();
+        const sameMonth = this.normalizeMonth(a.assessment_month || a.date) === assessmentMonth;
+        const sameCycle = (a.cycle || this.getCycleForDate(a.date)) === cycle;
+        return sameHost && sameReviewer && sameMonth && sameCycle;
+      });
+
+      let savedReview;
       if (existingIdx >= 0) {
-        // Update existing rather than duplicating
-        this.assessments[existingIdx] = {
+        savedReview = {
           ...this.assessments[existingIdx],
-          ...review
+          ...normalized,
+          id: this.assessments[existingIdx].id
         };
+        this.assessments[existingIdx] = savedReview;
       } else {
-        this.assessments.push(review);
+        savedReview = {
+          ...normalized,
+          id: normalized.id || ('rev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6))
+        };
+        this.assessments.push(savedReview);
       }
 
       localStorage.setItem('fyc_assessments', JSON.stringify(this.assessments));
-      if (window.SupabaseEngine && typeof window.SupabaseEngine.saveAssessment === 'function') window.SupabaseEngine.saveAssessment(review);
-      return review;
+      window.AppStore?.invalidate?.();
+      if (window.SupabaseEngine && typeof window.SupabaseEngine.saveAssessment === 'function') {
+        window.SupabaseEngine.saveAssessment(savedReview);
+      }
+      return savedReview;
     },
 
     updateAssessment(id, updatedFields) {
@@ -213,10 +337,14 @@
         pin: updatedFields.pin !== undefined ? parseFloat(updatedFields.pin) : existing.pin,
         discipline: updatedFields.discipline !== undefined ? parseFloat(updatedFields.discipline) : existing.discipline,
         grooming: updatedFields.grooming !== undefined ? parseFloat(updatedFields.grooming) : existing.grooming,
-        date: updatedFields.date || new Date().toISOString().split('T')[0]
+        date: updatedFields.date || existing.date || new Date().toISOString().split('T')[0],
+        assessment_month: this.normalizeMonth(updatedFields.assessment_month || existing.assessment_month || existing.date),
+        cycle: updatedFields.cycle || existing.cycle || this.getCycleForDate(updatedFields.date || existing.date),
+        reviewer_account_id: updatedFields.reviewer_account_id || existing.reviewer_account_id || null
       };
 
       localStorage.setItem('fyc_assessments', JSON.stringify(this.assessments));
+      window.AppStore?.invalidate?.();
       if (window.SupabaseEngine && typeof window.SupabaseEngine.saveAssessment === 'function') window.SupabaseEngine.saveAssessment(this.assessments[idx]);
       return this.assessments[idx];
     },
@@ -224,42 +352,42 @@
     deleteAssessment(id) {
       this.assessments = this.assessments.filter(a => a.id !== id);
       localStorage.setItem('fyc_assessments', JSON.stringify(this.assessments));
+      window.AppStore?.invalidate?.();
       if (window.SupabaseEngine && typeof window.SupabaseEngine.deleteAssessment === 'function') window.SupabaseEngine.deleteAssessment(id);
       return true;
     },
 
-    calculateHostAssessment(hostName) {
-      const reviews = this.getHostReviews(hostName);
-      if (reviews.length === 0) {
+    calculateHostAssessment(hostName, month = null) {
+      const assessmentMonth = month || window.App?.assessmentMonth || this.getCurrentMonth();
+      const reviewerSummaries = this.getReviewerMonthlySummaries(hostName, assessmentMonth);
+
+      if (reviewerSummaries.length === 0) {
         return {
           cta: 4.0,
           pin: 4.0,
           discipline: 4.0,
           grooming: 4.0,
           reviewCount: 0,
+          reviewerCount: 0,
+          completeReviewerCount: 0,
           rawAverage: 4.0,
-          weightedScore: 80.0
+          weightedScore: 80.0,
+          reviewerSummaries: []
         };
       }
 
-      let ctaSum = 0, pinSum = 0, discSum = 0, groomSum = 0;
-      reviews.forEach(r => {
-        ctaSum += parseFloat(r.cta) || 4;
-        pinSum += parseFloat(r.pin) || 4;
-        discSum += parseFloat(r.discipline) || 4;
-        groomSum += parseFloat(r.grooming) || 4;
-      });
+      const reviewerCount = reviewerSummaries.length;
+      const avgAcrossPICs = field =>
+        reviewerSummaries.reduce((sum, summary) => sum + Number(summary[field] || 4), 0) / reviewerCount;
 
-      const count = reviews.length;
-      const cta = ctaSum / count;
-      const pin = pinSum / count;
-      const discipline = discSum / count;
-      const grooming = groomSum / count;
+      const cta = avgAcrossPICs('cta');
+      const pin = avgAcrossPICs('pin');
+      const discipline = avgAcrossPICs('discipline');
+      const grooming = avgAcrossPICs('grooming');
 
-      // Calculate weighted assessment score (0 - 100)
       const w = this.weights.assessment;
       const totalW = (w.cta + w.pin + w.discipline + w.grooming) || 100;
-      
+
       const weightedAvgOutOf5 = (
         cta * (w.cta / totalW) +
         pin * (w.pin / totalW) +
@@ -267,20 +395,21 @@
         grooming * (w.grooming / totalW)
       );
 
-      const weightedScore = (weightedAvgOutOf5 / 5.0) * 100;
-
       return {
         cta,
         pin,
         discipline,
         grooming,
-        reviewCount: count,
+        reviewCount: reviewerSummaries.reduce((sum, summary) => sum + summary.reviews.length, 0),
+        reviewerCount,
+        completeReviewerCount: reviewerSummaries.filter(summary => summary.completedBothCycles).length,
         rawAverage: (cta + pin + discipline + grooming) / 4,
-        weightedScore
+        weightedScore: (weightedAvgOutOf5 / 5.0) * 100,
+        reviewerSummaries
       };
     },
 
-    computeAllHostScores(hostAggregates) {
+    computeAllHostScores(hostAggregates, assessmentMonth = null) {
       if (!hostAggregates || hostAggregates.length === 0) return [];
 
       let maxGMV = 1, maxGMVHr = 1, maxCTOR = 1, maxViews = 1, maxSold = 1;
@@ -313,7 +442,7 @@
           normCTOR * (pw.ctor / totalPw)
         );
 
-        const assessData = this.calculateHostAssessment(h.name);
+        const assessData = this.calculateHostAssessment(h.name, assessmentMonth);
         const assessScore = assessData.weightedScore;
         const finalScore = (perfScore * perfRatio) + (assessScore * assessRatio);
 

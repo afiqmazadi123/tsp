@@ -69,7 +69,11 @@
       const weights = JSON.stringify(window.Scoring?.weights || {});
       const assessments = window.Scoring?.assessments || [];
       const assessmentKey = JSON.stringify(assessments);
-      return memo(`scoredHosts:${weights}:${assessmentKey}`, () => Scoring.computeAllHostScores(this.hostAggs));
+      const assessmentMonth = window.App?.assessmentMonth || window.Scoring?.getCurrentMonth?.() || '';
+      return memo(
+        `scoredHosts:${weights}:${assessmentKey}:${assessmentMonth}`,
+        () => Scoring.computeAllHostScores(this.hostAggs, assessmentMonth)
+      );
     },
 
     viewData(view) {

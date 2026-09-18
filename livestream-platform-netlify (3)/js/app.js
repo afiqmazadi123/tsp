@@ -17,6 +17,11 @@
     pitchModeActive: false,
     selectedHostForDrawer: null,
     assessmentFilterReviewer: 'all',
+    assessmentMonth: (() => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    })(),
+    assessmentCycle: new Date().getDate() <= 15 ? 'mid_month' : 'end_month',
 
     init() {
       try {
