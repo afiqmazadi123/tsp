@@ -34,7 +34,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
             </div>
-            <div class="kpi-value">${kpis.totalDuration.toLocaleString('id-ID')} <span style="font-size:14px;font-weight:500;color:var(--text-tertiary)">hrs</span></div>
+            <div class="kpi-value">${kpis.totalDuration.toLocaleString('id-ID')} <span class="metric-unit">hrs</span></div>
             <div class="kpi-meta">
               <span class="delta-badge neutral">${kpis.sessionCount.toLocaleString()} sessions</span>
               <span>completed</span>
@@ -62,7 +62,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
             </div>
-            <div class="kpi-value">${kpis.activeHosts} <span style="font-size:14px;font-weight:500;color:var(--text-tertiary)">hosts</span></div>
+            <div class="kpi-value">${kpis.activeHosts} <span class="metric-unit">hosts</span></div>
             <div class="kpi-meta">
               <span class="delta-badge neutral">${kpis.activeBrands} Brands</span>
               <span>assigned</span>
@@ -125,12 +125,12 @@
               <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
                 <div style="font-size:11px;color:var(--apple-cyan);font-weight:600">TikTok Live</div>
                 <div style="font-size:16px;font-weight:700;margin-top:2px">${AppleCharts.formatIDRShort(platformComp.TikTok.gmv)}</div>
-                <div style="font-size:11px;color:var(--text-tertiary)">${platformComp.TikTok.duration.toFixed(0)} hrs • Rp ${(platformComp.TikTok.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
+                <div class="helper-text">${platformComp.TikTok.duration.toFixed(0)} hrs • Rp ${(platformComp.TikTok.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
               </div>
               <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
                 <div style="font-size:11px;color:var(--apple-orange);font-weight:600">Shopee Live</div>
                 <div style="font-size:16px;font-weight:700;margin-top:2px">${AppleCharts.formatIDRShort(platformComp.Shopee.gmv)}</div>
-                <div style="font-size:11px;color:var(--text-tertiary)">${platformComp.Shopee.duration.toFixed(0)} hrs • Rp ${(platformComp.Shopee.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
+                <div class="helper-text">${platformComp.Shopee.duration.toFixed(0)} hrs • Rp ${(platformComp.Shopee.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
               </div>
             </div>
           </div>
@@ -236,7 +236,7 @@
                 <p>Most converted items during livestream sessions</p>
               </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="stack-10">
               ${topProducts.map((p, i) => `
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
                   <div style="max-width:70%">
