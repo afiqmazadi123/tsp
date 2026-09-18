@@ -1183,3 +1183,53 @@ table[data-sortable="true"] thead th.sort-active,
   text-align: left;
   overflow-wrap: anywhere;
 }
+
+
+/* Secure Auth admin card */
+.auth-session-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.auth-session-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.auth-session-card strong,
+.auth-session-card .helper-text {
+  overflow-wrap: anywhere;
+}
+
+.auth-login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.auth-login-footer .helper-text {
+  max-width: 620px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .auth-session-card,
+  .auth-login-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auth-session-card .apple-btn,
+  .auth-login-footer .apple-btn {
+    justify-content: center;
+  }
+}
