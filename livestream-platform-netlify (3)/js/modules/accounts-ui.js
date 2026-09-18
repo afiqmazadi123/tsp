@@ -78,8 +78,21 @@
       const targetAcc = Accounts.getAccount(targetAccountId);
       if (!targetAcc) return;
 
-      // If target account has PIN and current user is not super-admin, prompt PIN
-      if (targetAcc.pin && targetAcc.pin.trim() !== '' && currentAcc.id !== 'acc_afiq') {
+      if (window.SupabaseAuth?.isAuthenticated?.()) {
+        const authUserId = window.SupabaseAuth.getUser()?.id;
+        const boundAccount = Accounts.getAccounts().find(account => account.auth_user_id === authUserId);
+
+        if (!boundAccount) {
+          window.UI?.toast?.('This signed-in Supabase user is not linked to a dashboard sub-account.', 'warning');
+          return;
+        }
+        if (boundAccount.id !== targetAccountId) {
+          window.UI?.toast?.('Secure Auth mode locks the dashboard to the signed-in identity.', 'warning');
+          return;
+        }
+      }
+
+      if (Accounts.hasPin(targetAcc) && currentAcc.id !== 'acc_afiq') {
         this.openVerifyPinModal(targetAccountId);
       } else {
         this.selectAccount(targetAccountId);
