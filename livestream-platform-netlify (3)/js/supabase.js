@@ -13,6 +13,11 @@
     lastCloudSync: null,
 
     init() {
+      const DEFAULT_CONFIG = {
+        url: 'https://htckrzrpukospxokkgvd.supabase.co',
+        anonKey: 'sb_publishable__ZXAk3Mj4U6zWwjQqIuvsg_JZrLbiQT'
+      };
+
       const savedConfig = typeof localStorage !== 'undefined' ? localStorage.getItem('fyc_supabase_config') : null;
       if (savedConfig) {
         try {
@@ -25,6 +30,16 @@
         } catch (err) {
           console.warn('Invalid Supabase configuration:', err);
         }
+      } else {
+        this.url = DEFAULT_CONFIG.url;
+        this.anonKey = DEFAULT_CONFIG.anonKey;
+        this.isConnected = true;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('fyc_supabase_config', JSON.stringify(DEFAULT_CONFIG));
+        }
+        Promise.resolve(window.SupabaseAuth?.ready)
+          .catch(() => null)
+          .finally(() => this.syncDown(false));
       }
     },
 
