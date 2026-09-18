@@ -1778,3 +1778,208 @@ body.auth-pending > .ambient-glow {
 [data-theme="light"] .secure-profile-status {
   background: rgba(0,0,0,.03);
 }
+
+
+/* ==========================================================================
+   Secure team management + complete light-mode surfaces
+   ========================================================================== */
+
+.modal-window,
+.side-drawer {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.modal-window {
+  border-color: var(--hairline);
+}
+
+.side-drawer {
+  border-left-color: var(--hairline);
+}
+
+.close-btn {
+  background: rgba(255,255,255,.08);
+  color: var(--text-primary);
+}
+
+.secure-account-form-head {
+  margin-bottom: 18px;
+}
+
+.secure-account-form-head .modal-title {
+  margin: 9px 0 5px;
+}
+
+.secure-account-form-head p {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.auth-status-field {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: rgba(255,255,255,.035);
+}
+
+.auth-status-field strong {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.auth-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--apple-green);
+  box-shadow: 0 0 0 3px rgba(48,209,88,.12);
+}
+
+.auth-table-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.auth-table-status.linked {
+  color: var(--apple-green);
+  background: rgba(48,209,88,.11);
+}
+
+.auth-table-status.pending {
+  color: var(--apple-orange);
+  background: rgba(255,159,10,.11);
+}
+
+.auth-table-status.pending .auth-status-dot {
+  background: var(--apple-orange);
+  box-shadow: 0 0 0 3px rgba(255,159,10,.12);
+}
+
+.permission-badge-row,
+.table-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.permission-badge-row {
+  gap: 4px;
+}
+
+.table-action-row {
+  gap: 6px;
+}
+
+[data-theme="light"] .modal-backdrop {
+  background: rgba(20,20,24,.34);
+}
+
+[data-theme="light"] .modal-window,
+[data-theme="light"] .side-drawer {
+  background: rgba(255,255,255,.985);
+  color: var(--text-primary);
+  box-shadow: 0 24px 70px rgba(0,0,0,.18);
+}
+
+[data-theme="light"] .close-btn {
+  background: rgba(0,0,0,.055);
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .close-btn:hover {
+  background: rgba(0,0,0,.09);
+}
+
+[data-theme="light"] .auth-status-field,
+[data-theme="light"] .secure-profile-status,
+[data-theme="light"] .permission-box,
+[data-theme="light"] .account-item-card,
+[data-theme="light"] .leaderboard-item,
+[data-theme="light"] .review-card-item {
+  background: rgba(0,0,0,.028);
+}
+
+[data-theme="light"] .account-item-card:hover,
+[data-theme="light"] .leaderboard-item:hover,
+[data-theme="light"] .review-card-item:hover {
+  background: rgba(0,0,0,.055);
+}
+
+[data-theme="light"] .modal-window .modal-title,
+[data-theme="light"] .modal-window h3,
+[data-theme="light"] .modal-window strong,
+[data-theme="light"] .side-drawer h2,
+[data-theme="light"] .side-drawer h3,
+[data-theme="light"] .secure-profile-copy h3 {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-window p,
+[data-theme="light"] .modal-window .helper-text,
+[data-theme="light"] .secure-profile-copy p,
+[data-theme="light"] .secure-profile-copy span {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .modal-window .select-filter,
+[data-theme="light"] .modal-window input[type="text"],
+[data-theme="light"] .modal-window input[type="email"],
+[data-theme="light"] .modal-window input[type="password"],
+[data-theme="light"] .modal-window textarea {
+  background: #fff;
+  color: #1d1d1f;
+  border-color: rgba(0,0,0,.12);
+}
+
+[data-theme="light"] .modal-window .select-filter::placeholder,
+[data-theme="light"] .modal-window input::placeholder,
+[data-theme="light"] .modal-window textarea::placeholder {
+  color: #86868b;
+}
+
+[data-theme="light"] table.apple-table th {
+  color: #6e6e73;
+}
+
+[data-theme="light"] table.apple-table td {
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .admin-tabs {
+  border-bottom-color: rgba(0,0,0,.08);
+}
+
+[data-theme="light"] .admin-tab-btn {
+  color: #6e6e73;
+}
+
+[data-theme="light"] .admin-tab-btn.active {
+  color: #fff;
+}
+
+[data-theme="light"] .auth-table-status.linked {
+  background: rgba(40,180,75,.10);
+}
+
+@media (max-width: 680px) {
+  .modal-window {
+    padding: 20px;
+  }
+
+  .secure-account-form-head .modal-title {
+    font-size: 19px;
+  }
+}
