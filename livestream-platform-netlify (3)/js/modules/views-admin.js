@@ -21,16 +21,16 @@
             <p style="font-size:12.5px;color:var(--text-tertiary)">Manage creator hourly rates, sub-accounts, passwords/PINs, and cloud data portability</p>
           </div>
           <div style="display:flex;gap:10px;">
-            <button class="apple-btn apple-btn-secondary" onclick="App.exportFullBackupJSON()">Download Data Backup</button>
-            <button class="apple-btn apple-btn-primary" onclick="App.openAddAccountModal()">+ New Sub-Account</button>
+            <button class="apple-btn apple-btn-secondary" data-app-action="exportFullBackupJSON">Download Data Backup</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="openAddAccountModal">+ New Sub-Account</button>
           </div>
         </div>
 
         <!-- Admin Navigation Tabs -->
         <div class="admin-tabs">
-          <button class="admin-tab-btn ${this.adminActiveTab === 'host-rates' ? 'active' : ''}" onclick="App.setAdminTab('host-rates')">Host Rate Cards (${hostRates.length})</button>
-          <button class="admin-tab-btn ${this.adminActiveTab === 'sub-accounts' ? 'active' : ''}" onclick="App.setAdminTab('sub-accounts')">Sub-Accounts & PINs (${accounts.length})</button>
-          <button class="admin-tab-btn ${this.adminActiveTab === 'cloud-sync' ? 'active' : ''}" onclick="App.setAdminTab('cloud-sync')">Cloud & Storage Info</button>
+          <button class="admin-tab-btn ${this.adminActiveTab === 'host-rates' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="host-rates">Host Rate Cards (${hostRates.length})</button>
+          <button class="admin-tab-btn ${this.adminActiveTab === 'sub-accounts' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="sub-accounts">Sub-Accounts & PINs (${accounts.length})</button>
+          <button class="admin-tab-btn ${this.adminActiveTab === 'cloud-sync' ? 'active' : ''}" data-app-action="setAdminTab" data-app-arg="cloud-sync">Cloud & Storage Info</button>
         </div>
 
         <div id="admin-tab-content">
@@ -95,7 +95,7 @@
                         <span style="font-size:11px;color:var(--text-tertiary);">${h.history.length} adjustments</span>
                       </td>
                       <td>
-                        <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11.5px" onclick="App.openAdjustRateModal('${h.name}')">
+                        <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11.5px" data-app-action="openAdjustRateModal" data-app-arg="${h.name}">
                           ✏️ Adjust Rate
                         </button>
                       </td>
@@ -117,7 +117,7 @@
               <h3>Sub-Accounts & Authentication Security</h3>
               <p>Manage team evaluator credentials, PIN passwords, and administrative access rights</p>
             </div>
-            <button class="apple-btn apple-btn-primary" onclick="App.openAddAccountModal()">+ Add Sub-Account</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="openAddAccountModal">+ Add Sub-Account</button>
           </div>
 
           <div class="table-responsive">
@@ -161,11 +161,11 @@
                     </td>
                     <td>
                       <div style="display:flex;gap:6px;">
-                        <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" onclick="App.openEditAccountModal('${acc.id}')">
+                        <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px" data-app-action="openEditAccountModal" data-app-arg="${acc.id}">
                           ✏️ Edit
                         </button>
                         ${acc.id !== 'acc_afiq' ? `
-                          <button class="review-action-btn delete" onclick="App.deleteAccount('${acc.id}')" title="Delete Account">
+                          <button class="review-action-btn delete" data-app-action="deleteAccount" data-app-arg="${acc.id}" title="Delete Account">
                             🗑️
                           </button>
                         ` : ''}
@@ -225,11 +225,11 @@
               </div>
 
               <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
-                <button class="apple-btn apple-btn-primary" onclick="App.connectSupabase()">Save & Test Connection</button>
+                <button class="apple-btn apple-btn-primary" data-app-action="connectSupabase">Save & Test Connection</button>
                 ${isConnected ? `
-                  <button class="apple-btn apple-btn-secondary" onclick="App.pullSupabaseData()">⬇️ Pull Latest from Cloud</button>
-                  <button class="apple-btn apple-btn-secondary" onclick="App.pushSupabaseData()">⬆️ Push Local to Cloud</button>
-                  <button class="apple-btn apple-btn-secondary" style="color:var(--apple-red)" onclick="App.disconnectSupabase()">Disconnect</button>
+                  <button class="apple-btn apple-btn-secondary" data-app-action="pullSupabaseData">⬇️ Pull Latest from Cloud</button>
+                  <button class="apple-btn apple-btn-secondary" data-app-action="pushSupabaseData">⬆️ Push Local to Cloud</button>
+                  <button class="apple-btn apple-btn-secondary" style="color:var(--apple-red)" data-app-action="disconnectSupabase">Disconnect</button>
                 ` : ''}
               </div>
 
@@ -248,7 +248,7 @@
                 <h3>📋 1-Click Database Setup (SQL Schema)</h3>
                 <p>Run this script once in Supabase (SQL Editor > New Query > Run) to create tables automatically</p>
               </div>
-              <button class="apple-btn apple-btn-secondary" onclick="App.copySQLSchema()">Copy SQL Script</button>
+              <button class="apple-btn apple-btn-secondary" data-app-action="copySQLSchema">Copy SQL Script</button>
             </div>
 
             <div style="position:relative;">
@@ -266,8 +266,8 @@
             </div>
 
             <div style="display:flex;gap:10px;">
-              <button class="apple-btn apple-btn-secondary" onclick="App.exportFullBackupJSON()">Download Complete Backup JSON</button>
-              <button class="apple-btn apple-btn-secondary" onclick="App.openImportBackupModal()">Restore Backup JSON</button>
+              <button class="apple-btn apple-btn-secondary" data-app-action="exportFullBackupJSON">Download Complete Backup JSON</button>
+              <button class="apple-btn apple-btn-secondary" data-app-action="openImportBackupModal">Restore Backup JSON</button>
             </div>
           </div>
         </div>
@@ -357,7 +357,7 @@
         <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">Upload a previously downloaded JSON backup file to restore sub-accounts and rates</p>
         <input type="file" id="backup-file-input" accept=".json" class="select-filter" style="width:100%" />
         <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
-          <button class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Cancel</button>
+          <button class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
           <button class="apple-btn apple-btn-primary" id="btn-process-backup">Restore Data</button>
         </div>
       `;
@@ -417,8 +417,8 @@
             </div>
 
             <div style="display:flex;gap:10px;margin-top:8px;">
-              <button class="apple-btn apple-btn-primary" onclick="App.saveSheetSettings()">Save Configuration</button>
-              <button class="apple-btn apple-btn-secondary" onclick="App.triggerSync()">Sync Now from Google Sheet</button>
+              <button class="apple-btn apple-btn-primary" data-app-action="saveSheetSettings">Save Configuration</button>
+              <button class="apple-btn apple-btn-secondary" data-app-action="triggerSync">Sync Now from Google Sheet</button>
             </div>
 
             <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);margin-top:12px;">
@@ -426,7 +426,7 @@
               <p style="font-size:12px;color:var(--text-tertiary);line-height:1.5">
                 Whenever your Google Sheet updates, you can also download the "Report" tab as CSV and drag & drop it directly into the dashboard. It will instantly re-process all calculations.
               </p>
-              <button class="apple-btn apple-btn-secondary" style="margin-top:10px;" onclick="App.openSyncModal()">Open Drag & Drop Uploader</button>
+              <button class="apple-btn apple-btn-secondary" style="margin-top:10px;" data-app-action="openSyncModal">Open Drag & Drop Uploader</button>
             </div>
           </div>
         </div>
