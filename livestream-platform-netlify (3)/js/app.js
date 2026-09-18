@@ -314,6 +314,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     if (window.DataLoader?.ready) await window.DataLoader.ready;
     if (window.Accounts?.ready) await window.Accounts.ready;
+    if (window.SupabaseAuth?.ready) await window.SupabaseAuth.ready;
     App.init();
     if (window.DataLoader?.error) {
       window.UI?.toast?.('Bundled session data could not be loaded.', 'error', { duration: 0 });
