@@ -68,7 +68,7 @@
     get scoredHosts() {
       const weights = JSON.stringify(window.Scoring?.weights || {});
       const assessments = window.Scoring?.assessments || [];
-      const assessmentKey = assessments.length + ':' + (assessments[assessments.length - 1]?.id || '');
+      const assessmentKey = JSON.stringify(assessments);
       return memo(`scoredHosts:${weights}:${assessmentKey}`, () => Scoring.computeAllHostScores(this.hostAggs));
     },
 
