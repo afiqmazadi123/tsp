@@ -284,39 +284,48 @@
       }
 
       window.SupabaseEngine.saveConfig(url, key);
-      const res = await window.SupabaseEngine.testConnection();
-      if (res.success) {
-        window.UI?.toast?.('Connected to Supabase. Pulling latest cloud data…', 'success');
-        await window.SupabaseEngine.syncDown();
+      await window.UI.withBusy(async () => {
+        const res = await window.SupabaseEngine.testConnection();
+        if (res.success) {
+          window.UI?.toast?.('Connected to Supabase. Pulling latest cloud data…', 'success');
+          await window.SupabaseEngine.syncDown();
+        } else {
+          window.UI?.toast?.(res.message, 'error');
+        }
         this.renderCurrentView();
-      } else {
-        window.UI?.toast?.(res.message, 'error');
-        this.renderCurrentView();
-      }
+      }, 'Connecting to Supabase…');
     },
 
     async pullSupabaseData() {
-      const ok = await window.SupabaseEngine.syncDown();
-      if (ok) {
-        window.UI?.toast?.('Latest cloud data pulled successfully.', 'success');
-        this.renderCurrentView();
-      } else {
-        window.UI?.toast?.('Cloud pull failed. Check connection and API keys.', 'error');
-      }
+      await window.UI.withBusy(async () => {
+        const ok = await window.SupabaseEngine.syncDown();
+        if (ok) {
+          window.UI?.toast?.('Latest cloud data pulled successfully.', 'success');
+          this.renderCurrentView();
+        } else {
+          window.UI?.toast?.('Cloud pull failed. Check connection and API keys.', 'error');
+        }
+      }, 'Pulling cloud data…');
     },
 
     async pushSupabaseData() {
-      const res = await window.SupabaseEngine.syncUp();
-      window.UI?.toast?.(res.message, res.success === false ? 'error' : 'success');
-      this.renderCurrentView();
+      await window.UI.withBusy(async () => {
+        const res = await window.SupabaseEngine.syncUp();
+        window.UI?.toast?.(res.message, res.success === false ? 'error' : 'success');
+        this.renderCurrentView();
+      }, 'Uploading local changes…');
     },
 
-    disconnectSupabase() {
-      if (confirm('Disconnect from Supabase? The platform will return to LocalStorage mode.')) {
-        window.SupabaseEngine.disconnect();
-        window.UI?.toast?.('Disconnected from Supabase.', 'success');
-        this.renderCurrentView();
-      }
+    async disconnectSupabase() {
+      const confirmed = await window.UI?.confirm?.(
+        'Disconnect Supabase and return this browser to local-only storage mode?',
+        { title: 'Disconnect cloud sync', confirmLabel: 'Disconnect', danger: true }
+      );
+      if (!confirmed) return;
+
+      window.SupabaseEngine.disconnect();
+      window.UI?.toast?.('Disconnected from Supabase.', 'success');
+      this.renderCurrentView();
     },
 
     copySQLSchema() {
@@ -441,13 +450,16 @@
     },
 
     async triggerSync() {
-      const res = await SyncEngine.syncFromGoogleSheet();
-      if (res.success) {
-        window.UI?.toast?.(`Sync complete: ${res.count.toLocaleString('id-ID')} sessions updated.`, 'success');
-        this.renderCurrentView();
-      } else {
-        window.UI?.toast?.(res.message, res.success === false ? 'error' : 'success');
-      }
+      await window.UI.withBusy(async () => {
+        const res = await SyncEngine.syncFromGoogleSheet();
+        if (res.success) {
+          window.AppStore?.invalidate();
+          window.UI?.toast?.(`Sync complete: ${res.count.toLocaleString('id-ID')} sessions updated.`, 'success');
+          this.renderCurrentView();
+        } else {
+          window.UI?.toast?.(res.message, 'error');
+        }
+      }, 'Syncing Google Sheet…');
     },
 
 
