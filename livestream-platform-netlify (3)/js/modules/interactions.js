@@ -52,7 +52,7 @@
             <h4 style="font-size:13px;font-weight:600;">Supervisor Assessments (${reviews.length})</h4>
             <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" data-app-action="openAddReviewModal" data-app-arg="${scored.name}">+ Grade Host</button>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="stack-10">
             ${reviews.length > 0 ? reviews.map(r => `
               <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);border:1px solid var(--border-subtle)">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;">
@@ -132,20 +132,20 @@
         <h3 style="font-size:18px;font-weight:700;margin-bottom:6px;">
           ${existingReview ? 'Update Assessment for ' + preselectedHost : 'Submit Reviewer Assessment'}
         </h3>
-        <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">
+        <p class="muted-copy">
           Scale 1.0 (Low) to 5.0 (Exceptional). Scoring will automatically average across all reviewers.
         </p>
-        <form id="add-review-form" style="display:flex;flex-direction:column;gap:14px;">
+        <form id="add-review-form" class="form-stack">
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Select Creator</label>
-            <select id="rev-host-select" class="select-filter" style="width:100%" onchange="App.onReviewHostChange(this.value)">
+            <label class="form-label">Select Creator</label>
+            <select id="rev-host-select" class="select-filter full-width" onchange="App.onReviewHostChange(this.value)">
               ${hosts.map(h => `<option value="${h.name}" ${h.name.toLowerCase() === preselectedHost.toLowerCase() ? 'selected' : ''}>${h.name}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Reviewer (Logged In Account)</label>
-            <select id="rev-reviewer-select" class="select-filter" style="width:100%">
+            <label class="form-label">Reviewer (Logged In Account)</label>
+            <select id="rev-reviewer-select" class="select-filter full-width">
               ${reviewerAccounts.map(r => `<option value="${r.name}" ${r.name.toLowerCase() === currentAcc.name.toLowerCase() ? 'selected' : ''}>${r.name} (${r.role})</option>`).join('')}
             </select>
           </div>
@@ -182,11 +182,11 @@
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Reviewer Notes & Feedback</label>
+            <label class="form-label">Reviewer Notes & Feedback</label>
             <textarea id="rev-notes" rows="3" class="select-filter" style="width:100%;resize:vertical" placeholder="Enter qualitative observations, strengths, or areas for improvement...">${existingReview ? (existingReview.notes || '') : ''}</textarea>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+          <div class="form-actions">
             <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Save Assessment</button>
           </div>
@@ -244,11 +244,11 @@
           <h3 style="font-size:18px;font-weight:700">Edit Assessment: ${review.host}</h3>
           <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${review.id}" title="Delete Review">Delete Review</button>
         </div>
-        <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">
+        <p class="muted-copy">
           Reviewed by <strong>${review.reviewer}</strong> on ${review.date}
         </p>
 
-        <form id="edit-review-form" style="display:flex;flex-direction:column;gap:14px;">
+        <form id="edit-review-form" class="form-stack">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-bottom:4px;">
@@ -284,11 +284,11 @@
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Reviewer Notes & Feedback</label>
+            <label class="form-label">Reviewer Notes & Feedback</label>
             <textarea id="edit-notes" rows="3" class="select-filter" style="width:100%;resize:vertical" placeholder="Enter qualitative notes...">${review.notes || ''}</textarea>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+          <div class="form-actions">
             <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Update Assessment</button>
           </div>
@@ -335,17 +335,17 @@
       const currentAcc = Accounts.getCurrentAccount();
 
       container.innerHTML = `
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Adjust Hourly Rate: ${hostName}</h3>
-        <form id="adjust-rate-form" style="display:flex;flex-direction:column;gap:14px;">
+        <h3 class="modal-title">Adjust Hourly Rate: ${hostName}</h3>
+        <form id="adjust-rate-form" class="form-stack">
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">New Hourly Rate (IDR)</label>
-            <input type="number" id="new-rate-input" value="${currentRate}" step="5000" class="select-filter" style="width:100%" />
+            <label class="form-label">New Hourly Rate (IDR)</label>
+            <input type="number" id="new-rate-input" value="${currentRate}" step="5000" class="select-filter full-width" />
           </div>
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Reason for Adjustment</label>
-            <input type="text" id="rate-reason-input" value="Performance promotion" class="select-filter" style="width:100%" />
+            <label class="form-label">Reason for Adjustment</label>
+            <input type="text" id="rate-reason-input" value="Performance promotion" class="select-filter full-width" />
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+          <div class="form-actions">
             <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Update Rate</button>
           </div>
@@ -384,7 +384,7 @@
             </div>
             <div style="text-align:right">
               <div style="font-size:12px;font-weight:600">Period: Sep 2026</div>
-              <div style="font-size:11px;color:var(--text-tertiary)">Issued: ${new Date().toLocaleDateString('id-ID')}</div>
+              <div class="helper-text">Issued: ${new Date().toLocaleDateString('id-ID')}</div>
             </div>
           </div>
 
@@ -461,7 +461,7 @@
           <div style="flex:1;height:1px;background:var(--border-subtle)"></div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="stack-10">
           <button class="apple-btn apple-btn-primary" style="justify-content:center;padding:10px" data-app-action="triggerSync">
             Sync from Google Sheet (${SyncEngine.sheetId.substring(0, 10)}...)
           </button>
