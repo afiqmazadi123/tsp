@@ -104,28 +104,72 @@
       const { scoredHosts } = data;
       const weights = Scoring.weights;
       const currentAcc = Accounts.getCurrentAccount();
-      const allReviews = Scoring.assessments;
+      const assessmentMonth = this.assessmentMonth || Scoring.getCurrentMonth();
+      const assessmentCycle = this.assessmentCycle || Scoring.getCycleForDate();
+      const cycleLabel = Scoring.getCycleLabel(assessmentCycle);
+      const cycleDateLabel = Scoring.getCycleDateLabel(assessmentMonth, assessmentCycle);
 
-      const myReviews = Scoring.getReviewsByReviewer(currentAcc.name);
-      const myEvaluatedHostNames = new Set(myReviews.map(r => r.host.toLowerCase()));
+      const availableMonths = Array.from(new Set(
+        (window.MASTER_SESSIONS || [])
+          .map(session => String(session.date || '').slice(0, 7))
+          .filter(Boolean)
+      )).sort().reverse();
+      if (!availableMonths.includes(assessmentMonth)) availableMonths.unshift(assessmentMonth);
+
+      const monthReviews = Scoring.getReviewsForMonth(assessmentMonth);
+      const cycleReviews = Scoring.getReviewsForCycle(assessmentMonth, assessmentCycle);
+      const myMonthReviews = Scoring.getReviewsByReviewer(currentAcc.name, assessmentMonth);
+      const myCycleReviews = Scoring.getReviewsByReviewer(currentAcc.name, assessmentMonth, assessmentCycle);
+      const myEvaluatedHostNames = new Set(myCycleReviews.map(r => r.host.toLowerCase()));
       const totalHostsCount = scoredHosts.length;
       const evaluatedCount = myEvaluatedHostNames.size;
       const pendingCount = Math.max(0, totalHostsCount - evaluatedCount);
 
-      let displayedReviews = allReviews;
+      let displayedReviews = monthReviews;
       if (this.assessmentFilterReviewer !== 'all') {
-        displayedReviews = allReviews.filter(r => r.reviewer.toLowerCase() === this.assessmentFilterReviewer.toLowerCase());
+        displayedReviews = monthReviews.filter(r => r.reviewer.toLowerCase() === this.assessmentFilterReviewer.toLowerCase());
       }
+
+      const monthLabel = new Date(`${assessmentMonth}-01T12:00:00`).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+      });
 
       container.innerHTML = `
         <div class="view-header">
           <div>
             <h2 class="view-title">Multi-Reviewer Assessment & Scoring Engine</h2>
-            <p class="view-subtitle">Grade host performance, update previous evaluations, and configure scoring formulas</p>
+            <p class="view-subtitle">Two review cycles per month. Each PIC is averaged first, then PIC averages are combined into the host assessment score.</p>
           </div>
           <div class="action-row">
             <button class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">My Profile (${currentAcc.name})</button>
             <button class="apple-btn apple-btn-primary" data-app-action="openAddReviewModal">+ Grade Host</button>
+          </div>
+        </div>
+
+        <div class="assessment-period-panel">
+          <div>
+            <span class="assessment-period-eyebrow">Assessment Period</span>
+            <div class="assessment-period-title">${monthLabel}</div>
+            <p>Mid-Month covers day 1–15. End-Month covers day 16 through the last day of the month.</p>
+          </div>
+          <div class="assessment-period-controls">
+            <select class="select-filter" data-assessment-month="true" aria-label="Assessment month">
+              ${availableMonths.map(month => {
+                const label = new Date(`${month}-01T12:00:00`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                return `<option value="${month}" ${month === assessmentMonth ? 'selected' : ''}>${label}</option>`;
+              }).join('')}
+            </select>
+            <div class="assessment-cycle-toggle" role="group" aria-label="Assessment cycle">
+              <button class="${assessmentCycle === 'mid_month' ? 'active' : ''}" data-app-action="setAssessmentCycle" data-app-arg="mid_month">
+                Mid-Month
+                <small>1–15</small>
+              </button>
+              <button class="${assessmentCycle === 'end_month' ? 'active' : ''}" data-app-action="setAssessmentCycle" data-app-arg="end_month">
+                End-Month
+                <small>16–EOM</small>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -139,16 +183,16 @@
                 Reviewer: ${currentAcc.name} (${currentAcc.role})
               </div>
               <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
-                Signed-in reviewer identity is locked for security. You have evaluated <strong>${evaluatedCount} of ${totalHostsCount} creators</strong> (${pendingCount} pending).
+                <strong>${cycleLabel} · day ${cycleDateLabel}</strong> — you have evaluated <strong>${evaluatedCount} of ${totalHostsCount} creators</strong> in this cycle (${pendingCount} pending).
               </div>
             </div>
           </div>
           <div style="display:flex;gap:8px;">
             <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" data-app-action="filterReviewsByReviewer" data-app-arg="${currentAcc.name}">
-              View My Evaluations (${myReviews.length})
+              My ${monthLabel} Reviews (${myMonthReviews.length})
             </button>
             <button class="apple-btn apple-btn-secondary" style="font-size:11.5px;padding:5px 12px;" data-app-action="filterReviewsByReviewer" data-app-arg="all">
-              View All Reviews (${allReviews.length})
+              All ${monthLabel} Reviews (${monthReviews.length})
             </button>
           </div>
         </div>
@@ -232,7 +276,7 @@
           <div class="card-header">
             <div class="card-title-group">
               <h3>Raport Host - Unified Scoring Table</h3>
-              <p>Combined performance & multi-reviewer evaluation results</p>
+              <p>${monthLabel}: each PIC averages their Mid + End cycle first; the host score then averages all PIC results equally.</p>
             </div>
           </div>
 
@@ -254,7 +298,7 @@
               </thead>
               <tbody>
                 ${scoredHosts.map(h => {
-                  const myReview = Scoring.getHostReviewByReviewer(h.name, currentAcc.name);
+                  const myReview = Scoring.getHostReviewByReviewer(h.name, currentAcc.name, assessmentMonth, assessmentCycle);
                   return `
                     <tr data-app-action="openHostDrawer" data-app-arg="${h.name}" style="cursor:pointer">
                       <td><div class="rank-badge ${h.rank === 1 ? 'rank-1' : (h.rank === 2 ? 'rank-2' : (h.rank === 3 ? 'rank-3' : 'rank-other'))}">${h.rank}</div></td>
@@ -264,16 +308,19 @@
                       <td>★ ${h.assessData.pin.toFixed(1)}</td>
                       <td>★ ${h.assessData.discipline.toFixed(1)}</td>
                       <td>★ ${h.assessData.grooming.toFixed(1)}</td>
-                      <td><span style="font-weight:600;color:var(--apple-purple)">${h.assessScore.toFixed(1)}%</span></td>
+                      <td>
+                        <span style="font-weight:600;color:var(--apple-purple)">${h.assessScore.toFixed(1)}%</span>
+                        <div class="meta-xs">${h.assessData.reviewerCount || 0} PIC · ${h.assessData.completeReviewerCount || 0} complete 2/2</div>
+                      </td>
                       <td style="font-size:15px;font-weight:700;color:var(--text-primary)">${h.finalScore.toFixed(1)}%</td>
                       <td >
                         ${myReview ? `
                           <button class="apple-btn apple-btn-secondary" style="padding:3px 8px;font-size:11px;color:var(--apple-cyan)" data-app-action="openEditReviewModal" data-app-arg="${myReview.id}" data-stop-propagation="true">
-                            ✏️ Edit My Score (${myReview.cta.toFixed(1)})
+                            ✏️ Edit ${cycleLabel} (${myReview.cta.toFixed(1)})
                           </button>
                         ` : `
                           <button class="apple-btn apple-btn-primary" style="padding:3px 8px;font-size:11px" data-app-action="openAddReviewModal" data-app-arg="${h.name}" data-stop-propagation="true">
-                            ★ Grade Host
+                            ★ Grade ${cycleLabel}
                           </button>
                         `}
                       </td>
@@ -288,13 +335,13 @@
         <div class="glass-card">
           <div class="card-header">
             <div class="card-title-group">
-              <h3>Team Evaluation Records (${displayedReviews.length})</h3>
-              <p>Individual ratings submitted by reviewers. Click Edit to adjust scores or notes.</p>
+              <h3>${monthLabel} Evaluation Records (${displayedReviews.length})</h3>
+              <p>Raw Mid-Month and End-Month ratings. Monthly scoring averages cycles within each PIC before averaging across PICs.</p>
             </div>
             <div class="inline-group">
               <label style="font-size:12px;color:var(--text-tertiary)">Filter Reviewer:</label>
               <select class="select-filter" data-reviewer-filter="true">
-                <option value="all" ${this.assessmentFilterReviewer === 'all' ? 'selected' : ''}>All Reviewers (${allReviews.length})</option>
+                <option value="all" ${this.assessmentFilterReviewer === 'all' ? 'selected' : ''}>All Reviewers (${monthReviews.length})</option>
                 ${Accounts.getReviewerAccounts().map(a => `
                   <option value="${a.name}" ${this.assessmentFilterReviewer.toLowerCase() === a.name.toLowerCase() ? 'selected' : ''}>${a.name}</option>
                 `).join('')}
@@ -310,6 +357,9 @@
                     <div style="font-size:14px;font-weight:700;color:var(--text-primary)">Host: ${r.host}</div>
                     <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">
                       By <strong>${r.reviewer}</strong> • ${r.date}
+                      <span class="assessment-cycle-badge ${r.cycle === 'end_month' ? 'end' : 'mid'}">
+                        ${Scoring.getCycleLabel(r.cycle || Scoring.getCycleForDate(r.date))}
+                      </span>
                     </div>
                   </div>
                   <div style="display:flex;gap:6px;">
@@ -344,6 +394,20 @@
       });
     },
 
+
+    setAssessmentCycle(cycle) {
+      if (!['mid_month', 'end_month'].includes(cycle)) return;
+      this.assessmentCycle = cycle;
+      window.AppStore?.invalidate?.();
+      this.renderCurrentView();
+    },
+
+    setAssessmentMonth(month) {
+      if (!/^\d{4}-\d{2}$/.test(String(month || ''))) return;
+      this.assessmentMonth = month;
+      window.AppStore?.invalidate?.();
+      this.renderCurrentView();
+    },
 
     filterReviewsByReviewer(reviewerName) {
       this.assessmentFilterReviewer = reviewerName;
