@@ -201,7 +201,7 @@
         const target = group.duration * effective.targetPerHour;
         const achievement = target > 0 ? (group.gmv / target) * 100 : null;
         const base = effective.base;
-        const adjustmentPct = base?.auto_adjust_enabled === false || base?.status === 'off'
+        const adjustmentPct = !base || effective.targetPerHour <= 0 || base?.auto_adjust_enabled === false || base?.status === 'off'
           ? 0
           : this.getAdjustmentPct(achievement);
         const suggestedTargetPerHour = effective.targetPerHour > 0
