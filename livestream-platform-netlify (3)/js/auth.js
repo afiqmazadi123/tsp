@@ -17,6 +17,9 @@
 
     init() {
       try {
+        // Production backend is fixed. Never trust a browser-stored endpoint/key override.
+        localStorage.setItem('fyc_supabase_config', JSON.stringify(DEFAULT_CONFIG));
+
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -32,15 +35,7 @@
     },
 
     getConfig() {
-      try {
-        const parsed = JSON.parse(localStorage.getItem('fyc_supabase_config') || '{}');
-        return {
-          url: String(parsed.url || DEFAULT_CONFIG.url).replace(/\/$/, ''),
-          anonKey: String(parsed.anonKey || DEFAULT_CONFIG.anonKey)
-        };
-      } catch (_) {
-        return { ...DEFAULT_CONFIG };
-      }
+      return { ...DEFAULT_CONFIG };
     },
 
     getAccessToken() {
