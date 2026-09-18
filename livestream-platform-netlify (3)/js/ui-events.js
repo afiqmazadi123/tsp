@@ -12,6 +12,9 @@
     openAdminPanel() {
       window.App?.switchView?.('admin');
       window.App?.closeModal?.();
+    },
+    print() {
+      window.print();
     }
   };
 
@@ -36,15 +39,36 @@
     }
 
     try {
+      const originalLabel = target instanceof HTMLButtonElement ? target.textContent : '';
       const result = specialActions[action]
         ? handler.call(specialActions, event, target)
         : (arg !== undefined ? handler.call(window.App, arg) : handler.call(window.App));
 
-      if (result && typeof result.catch === 'function') {
-        result.catch(err => console.error(`Action ${action} failed:`, err));
+      if (result && typeof result.then === 'function') {
+        if (target instanceof HTMLButtonElement) {
+          target.disabled = true;
+          target.dataset.originalLabel = originalLabel;
+        }
+        result
+          .catch(err => {
+            console.error(`Action ${action} failed:`, err);
+            window.UI?.toast?.(err.message || 'Action failed.', 'error');
+          })
+          .finally(() => {
+            if (target instanceof HTMLButtonElement) target.disabled = false;
+          });
       }
     } catch (err) {
       console.error(`Action ${action} failed:`, err);
+      window.UI?.toast?.(err.message || 'Action failed.', 'error');
     }
   });
 })(window, document);
+
+
+document.addEventListener('click', (event) => {
+  const backdrop = event.target.closest?.('[data-modal-backdrop]');
+  if (backdrop && event.target === backdrop) {
+    window.App?.closeModal?.();
+  }
+});
