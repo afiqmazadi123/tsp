@@ -443,7 +443,7 @@
         </div>
       `;
 
-      document.getElementById('btn-process-backup').onclick = () => {
+      document.getElementById('btn-process-backup').addEventListener('click', () => {
         const fileInput = document.getElementById('backup-file-input');
         if (!fileInput.files || fileInput.files.length === 0) {
           window.UI?.toast?.('Choose a backup JSON file first.', 'warning');
@@ -466,7 +466,7 @@
           }
         };
         reader.readAsText(fileInput.files[0]);
-      };
+      });
 
       modal.classList.add('active');
     },
