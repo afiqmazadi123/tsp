@@ -1708,3 +1708,73 @@ body.auth-pending > .ambient-glow {
     flex-direction: column;
   }
 }
+
+
+/* Secure authenticated profile */
+.secure-profile-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 2px 2px;
+}
+
+.secure-profile-avatar {
+  width: 58px;
+  height: 58px;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.secure-profile-copy h3 {
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+
+.secure-profile-copy p {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.secure-profile-copy span {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.secure-profile-status {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 14px;
+  padding: 11px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: rgba(255,255,255,.035);
+  text-align: left;
+  font-size: 11px;
+}
+
+.secure-profile-status span {
+  color: var(--apple-green);
+  font-weight: 650;
+}
+
+.secure-profile-status strong {
+  color: var(--text-secondary);
+  font-weight: 550;
+}
+
+.secure-profile-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+[data-theme="light"] .secure-profile-status {
+  background: rgba(0,0,0,.03);
+}
