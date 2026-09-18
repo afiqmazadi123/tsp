@@ -141,11 +141,11 @@
                 <h3>Top Host Leaderboard</h3>
                 <p>Ranked by unified performance intelligence score</p>
               </div>
-              <a href="#" class="apple-btn apple-btn-secondary" onclick="App.switchView('hosts'); return false;" style="padding:4px 10px;font-size:11.5px">View All</a>
+              <a href="#" class="apple-btn apple-btn-secondary" data-app-action="switchView" data-app-arg="hosts" style="padding:4px 10px;font-size:11.5px">View All</a>
             </div>
             <div class="leaderboard-list">
               ${scoredHosts.slice(0, 5).map(h => `
-                <div class="leaderboard-item" onclick="App.openHostDrawer('${h.name}')">
+                <div class="leaderboard-item" data-app-action="openHostDrawer" data-app-arg="${h.name}">
                   <div class="rank-badge ${h.rank === 1 ? 'rank-1' : (h.rank === 2 ? 'rank-2' : (h.rank === 3 ? 'rank-3' : 'rank-other'))}">
                     ${h.rank}
                   </div>
@@ -258,32 +258,44 @@
               <h3>Livestream Session Master Log</h3>
               <p>Granular breakdown of all ${sessions.length.toLocaleString()} shifts recorded</p>
             </div>
-            <div style="display:flex;gap:10px;">
-              <input type="text" id="session-search-input" placeholder="Search host, brand, product..." class="select-filter" style="width:240px" />
-              <button class="apple-btn apple-btn-secondary" onclick="App.exportSessionsCSV()">Export CSV</button>
+            <div class="table-toolbar">
+              <label class="search-field">
+                <span class="sr-only">Search sessions</span>
+                <input type="search" id="session-search-input" placeholder="Search host, brand, product…" class="select-filter" autocomplete="off" />
+              </label>
+              <label class="page-size-control">
+                <span>Rows</span>
+                <select id="session-page-size" class="select-filter" aria-label="Rows per page">
+                  <option value="15">15</option>
+                  <option value="30">30</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <button class="apple-btn apple-btn-secondary" data-app-action="exportSessionsCSV">Export CSV</button>
             </div>
           </div>
 
           <div class="table-responsive">
-            <table class="apple-table" id="session-master-table">
+            <table class="apple-table session-data-table" id="session-master-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Brand</th>
-                  <th>Platform</th>
-                  <th>Host</th>
-                  <th>Time / Dur</th>
-                  <th>GMV</th>
-                  <th>GMV/Hour</th>
-                  <th>CTR</th>
-                  <th>CTOR</th>
-                  <th>Sold</th>
+                  <th data-session-sort="date" aria-sort="descending">Date</th>
+                  <th data-session-sort="brand">Brand</th>
+                  <th data-session-sort="platform">Platform</th>
+                  <th data-session-sort="host">Host</th>
+                  <th data-session-sort="duration">Time / Dur</th>
+                  <th data-session-sort="gmv">GMV</th>
+                  <th data-session-sort="gmv_hr">GMV/Hour</th>
+                  <th data-session-sort="ctr">CTR</th>
+                  <th data-session-sort="ctor">CTOR</th>
+                  <th data-session-sort="sold_qty">Sold</th>
                 </tr>
               </thead>
               <tbody id="session-table-body"></tbody>
             </table>
           </div>
-          <div id="session-pagination" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-subtle)"></div>
+          <div id="session-pagination" class="table-pagination"></div>
         </div>
       `;
 
@@ -305,61 +317,147 @@
 
     initSessionTablePagination(sessions) {
       let currentPage = 1;
-      const pageSize = 15;
-      let filtered = [...sessions];
+      let pageSize = 15;
+      let query = '';
+      let sortKey = 'date';
+      let sortDirection = 'desc';
+      let searchTimer;
 
       const searchInput = document.getElementById('session-search-input');
-      if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-          const q = e.target.value.toLowerCase();
-          filtered = sessions.filter(s => 
-            s.host.toLowerCase().includes(q) ||
-            s.brand.toLowerCase().includes(q) ||
-            (s.product && s.product.toLowerCase().includes(q))
-          );
-          currentPage = 1;
-          renderPage();
+      const pageSizeSelect = document.getElementById('session-page-size');
+      const table = document.getElementById('session-master-table');
+
+      const normalize = value => String(value || '').toLocaleLowerCase('id-ID');
+
+      const getRows = () => {
+        const filtered = sessions.filter(session => {
+          if (!query) return true;
+          return [session.host, session.brand, session.product, session.platform]
+            .some(value => normalize(value).includes(query));
         });
-      }
+
+        return filtered.sort((a, b) => {
+          const av = a?.[sortKey];
+          const bv = b?.[sortKey];
+          let comparison = 0;
+
+          if (typeof av === 'number' || typeof bv === 'number') {
+            comparison = (Number(av) || 0) - (Number(bv) || 0);
+          } else {
+            comparison = String(av || '').localeCompare(String(bv || ''), 'id-ID', {
+              numeric: true,
+              sensitivity: 'base'
+            });
+          }
+
+          return sortDirection === 'asc' ? comparison : -comparison;
+        });
+      };
+
+      const updateSortHeaders = () => {
+        table?.querySelectorAll('th[data-session-sort]').forEach(th => {
+          const active = th.dataset.sessionSort === sortKey;
+          th.classList.toggle('sort-active', active);
+          if (active) {
+            th.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+          } else {
+            th.removeAttribute('aria-sort');
+          }
+        });
+      };
 
       const renderPage = () => {
         const tbody = document.getElementById('session-table-body');
         const pagination = document.getElementById('session-pagination');
-        if (!tbody) return;
+        if (!tbody || !pagination) return;
 
+        const filtered = getRows();
+        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+        currentPage = Math.min(currentPage, totalPages);
         const startIdx = (currentPage - 1) * pageSize;
         const pageItems = filtered.slice(startIdx, startIdx + pageSize);
 
-        tbody.innerHTML = pageItems.map(s => `
+        tbody.innerHTML = pageItems.length ? pageItems.map(s => `
           <tr>
-            <td>${s.date}</td>
+            <td data-sort-value="${s.date}">${s.date}</td>
             <td><span class="brand-tag">${s.brand}</span></td>
-            <td><span class="platform-pill ${s.platform.toLowerCase()}">${s.platform}</span></td>
+            <td><span class="platform-pill ${String(s.platform || '').toLowerCase()}">${s.platform}</span></td>
             <td><strong>${s.host}</strong></td>
-            <td>${s.start} - ${s.end} (${s.duration}h)</td>
-            <td style="font-weight:600;color:var(--apple-cyan)">${AppleCharts.formatIDR(s.gmv)}</td>
-            <td>${AppleCharts.formatIDR(s.gmv_hr)}</td>
-            <td>${s.ctr.toFixed(1)}%</td>
-            <td><strong>${s.ctor.toFixed(1)}%</strong></td>
-            <td>${s.sold_qty} pcs</td>
+            <td data-sort-value="${s.duration}">${s.start} - ${s.end} (${s.duration}h)</td>
+            <td class="metric-accent" data-sort-value="${s.gmv}">${AppleCharts.formatIDR(s.gmv)}</td>
+            <td data-sort-value="${s.gmv_hr}">${AppleCharts.formatIDR(s.gmv_hr)}</td>
+            <td data-sort-value="${s.ctr}">${Number(s.ctr || 0).toFixed(1)}%</td>
+            <td data-sort-value="${s.ctor}"><strong>${Number(s.ctor || 0).toFixed(1)}%</strong></td>
+            <td data-sort-value="${s.sold_qty}">${Number(s.sold_qty || 0).toLocaleString('id-ID')} pcs</td>
           </tr>
-        `).join('');
+        `).join('') : `
+          <tr>
+            <td colspan="10" class="table-empty-cell">No sessions match “${query}”.</td>
+          </tr>
+        `;
 
-        const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+        const firstShown = filtered.length ? startIdx + 1 : 0;
+        const lastShown = Math.min(startIdx + pageSize, filtered.length);
         pagination.innerHTML = `
-          <span style="font-size:12px;color:var(--text-tertiary)">Showing ${startIdx + 1} - ${Math.min(startIdx + pageSize, filtered.length)} of ${filtered.length} sessions</span>
-          <div style="display:flex;gap:6px;">
-            <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11.5px" ${currentPage === 1 ? 'disabled' : ''} id="prev-page-btn">Prev</button>
-            <span style="display:flex;align-items:center;padding:0 8px;font-size:12px">Page ${currentPage} of ${totalPages}</span>
-            <button class="apple-btn apple-btn-secondary" style="padding:4px 10px;font-size:11.5px" ${currentPage === totalPages ? 'disabled' : ''} id="next-page-btn">Next</button>
+          <span class="pagination-summary">Showing ${firstShown}–${lastShown} of ${filtered.length.toLocaleString('id-ID')} sessions</span>
+          <div class="pagination-actions">
+            <button class="apple-btn apple-btn-secondary compact-btn" ${currentPage === 1 ? 'disabled' : ''} id="prev-page-btn">Prev</button>
+            <span class="pagination-page">Page ${currentPage} of ${totalPages}</span>
+            <button class="apple-btn apple-btn-secondary compact-btn" ${currentPage === totalPages ? 'disabled' : ''} id="next-page-btn">Next</button>
           </div>
         `;
 
-        const prevBtn = document.getElementById('prev-page-btn');
-        const nextBtn = document.getElementById('next-page-btn');
-        if (prevBtn) prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPage(); } };
-        if (nextBtn) nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderPage(); } };
+        document.getElementById('prev-page-btn')?.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage -= 1;
+            renderPage();
+          }
+        });
+        document.getElementById('next-page-btn')?.addEventListener('click', () => {
+          if (currentPage < totalPages) {
+            currentPage += 1;
+            renderPage();
+          }
+        });
+
+        updateSortHeaders();
       };
+
+      searchInput?.addEventListener('input', event => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => {
+          query = normalize(event.target.value.trim());
+          currentPage = 1;
+          renderPage();
+        }, 140);
+      });
+
+      pageSizeSelect?.addEventListener('change', event => {
+        pageSize = Number(event.target.value) || 15;
+        currentPage = 1;
+        renderPage();
+      });
+
+      table?.querySelectorAll('th[data-session-sort]').forEach(th => {
+        th.tabIndex = 0;
+        th.addEventListener('click', () => {
+          const nextKey = th.dataset.sessionSort;
+          if (sortKey === nextKey) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortKey = nextKey;
+            sortDirection = nextKey === 'date' || ['gmv','gmv_hr','ctr','ctor','sold_qty','duration'].includes(nextKey) ? 'desc' : 'asc';
+          }
+          currentPage = 1;
+          renderPage();
+        });
+        th.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            th.click();
+          }
+        });
+      });
 
       renderPage();
     },
@@ -370,19 +468,19 @@
       const currentAcc = Accounts.getCurrentAccount();
 
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="view-header">
           <div>
-            <h2 style="font-size:20px;font-weight:700">Creator Performance & Raport</h2>
-            <p style="font-size:12.5px;color:var(--text-tertiary)">Click any creator card to view profile, rate card history, and multi-reviewer evaluations</p>
+            <h2 class="view-title">Creator Performance & Raport</h2>
+            <p class="view-subtitle">Click any creator card to view profile, rate card history, and multi-reviewer evaluations</p>
           </div>
-          <button class="apple-btn apple-btn-primary" onclick="App.openAddReviewModal()">+ Add Host Assessment</button>
+          <button class="apple-btn apple-btn-primary" data-app-action="openAddReviewModal">+ Add Host Assessment</button>
         </div>
 
         <div class="hosts-card-grid">
           ${scoredHosts.map(h => {
             const myReview = Scoring.getHostReviewByReviewer(h.name, currentAcc.name);
             return `
-              <div class="glass-card host-card" onclick="App.openHostDrawer('${h.name}')">
+              <div class="glass-card host-card" data-app-action="openHostDrawer" data-app-arg="${h.name}">
                 <div class="host-card-top">
                   <div class="host-card-avatar" style="background:${h.tierColor || '#0071e3'}">
                     ${h.name.substring(0, 2).toUpperCase()}
@@ -417,17 +515,17 @@
                   <span>CTOR: <strong>${h.avgCtor.toFixed(1)}%</strong></span>
                 </div>
 
-                <div style="display:flex;gap:8px;margin-top:auto" onclick="event.stopPropagation()">
+                <div style="display:flex;gap:8px;margin-top:auto" >
                   ${myReview ? `
-                    <button class="apple-btn apple-btn-secondary" style="flex:1;justify-content:center;padding:6px 0;font-size:11.5px;color:var(--apple-cyan)" onclick="App.openEditReviewModal('${myReview.id}')">
+                    <button class="apple-btn apple-btn-secondary" style="flex:1;justify-content:center;padding:6px 0;font-size:11.5px;color:var(--apple-cyan)" data-app-action="openEditReviewModal" data-app-arg="${myReview.id}" data-stop-propagation="true">
                       ✏️ Edit My Review (${myReview.cta.toFixed(1)})
                     </button>
                   ` : `
-                    <button class="apple-btn apple-btn-primary" style="flex:1;justify-content:center;padding:6px 0;font-size:11.5px" onclick="App.openAddReviewModal('${h.name}')">
+                    <button class="apple-btn apple-btn-primary" style="flex:1;justify-content:center;padding:6px 0;font-size:11.5px" data-app-action="openAddReviewModal" data-app-arg="${h.name}" data-stop-propagation="true">
                       ★ Grade Host
                     </button>
                   `}
-                  <button class="apple-btn apple-btn-secondary" style="padding:6px 12px;font-size:11.5px" onclick="App.openHostDrawer('${h.name}')">Raport</button>
+                  <button class="apple-btn apple-btn-secondary" style="padding:6px 12px;font-size:11.5px" data-app-action="openHostDrawer" data-app-arg="${h.name}" data-stop-propagation="true">Raport</button>
                 </div>
               </div>
             `;
@@ -454,7 +552,7 @@
               </p>
             </div>
             <div>
-              <button class="apple-btn apple-btn-primary" onclick="window.print()">
+              <button class="apple-btn apple-btn-primary" data-app-action="print">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 <span>Export Pitch Deck (PDF)</span>
               </button>
