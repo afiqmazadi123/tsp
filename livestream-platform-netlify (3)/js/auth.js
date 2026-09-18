@@ -14,6 +14,7 @@
   const SupabaseAuth = {
     session: null,
     ready: Promise.resolve(),
+    validatedAt: 0,
 
     init() {
       try {
@@ -30,7 +31,7 @@
         localStorage.removeItem(STORAGE_KEY);
       }
 
-      this.ready = this.ensureFreshSession();
+      this.ready = this.restoreAndValidateSession();
       return this.ready;
     },
 
@@ -57,6 +58,7 @@
 
     persist(session) {
       this.session = session || null;
+      this.validatedAt = session ? this.validatedAt : 0;
       if (this.session) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.session));
       } else {
@@ -68,6 +70,83 @@
       if (!payload?.access_token || !payload?.user) return null;
       const expiresAt = payload.expires_at || Math.floor(Date.now() / 1000) + Number(payload.expires_in || 3600);
       return { ...payload, expires_at: expiresAt };
+    },
+
+    async validateCurrentSession() {
+      if (!this.isAuthenticated()) return false;
+
+      const { url, anonKey } = this.getConfig();
+      let response;
+      try {
+        response = await fetch(`${url}/auth/v1/user`, {
+          method: 'GET',
+          headers: {
+            apikey: anonKey,
+            Authorization: `Bearer ${this.getAccessToken()}`,
+            Accept: 'application/json'
+          },
+          cache: 'no-store'
+        });
+      } catch (err) {
+        // A network problem should not destroy a valid local session.
+        throw new Error('Unable to verify secure session. Check your connection and try again.');
+      }
+
+      if (response.status === 401 || response.status === 403) return false;
+      if (!response.ok) throw new Error(`Session verification failed (${response.status})`);
+
+      const user = await response.json();
+      if (!user?.id) return false;
+
+      this.session = { ...this.session, user };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.session));
+      this.validatedAt = Date.now();
+      return true;
+    },
+
+    async restoreAndValidateSession() {
+      if (!this.isAuthenticated()) return null;
+
+      try {
+        if (this.isExpiringSoon()) {
+          await this.refresh();
+        }
+
+        if (await this.validateCurrentSession()) return this.session;
+
+        // The access token may have been revoked while a refresh token is still valid.
+        if (this.session?.refresh_token) {
+          try {
+            await this.refresh();
+            if (await this.validateCurrentSession()) return this.session;
+          } catch (_) {}
+        }
+      } catch (err) {
+        // Preserve the local session on transient network failures so AuthGate can show retry.
+        if (/connection|verify secure session|Session verification failed/i.test(err?.message || '')) {
+          throw err;
+        }
+      }
+
+      this.persist(null);
+      return null;
+    },
+
+    async recoverFromUnauthorized() {
+      if (!this.session?.refresh_token) {
+        this.persist(null);
+        return false;
+      }
+
+      try {
+        await this.refresh();
+        const valid = await this.validateCurrentSession();
+        if (!valid) this.persist(null);
+        return valid;
+      } catch (_) {
+        this.persist(null);
+        return false;
+      }
     },
 
     async authRequest(path, body, accessToken = '') {
