@@ -98,6 +98,10 @@ document.addEventListener('change', (event) => {
     window.App?.filterReviewsByReviewer?.(target.value);
   }
 
+  if (target?.matches?.('[data-assessment-month]')) {
+    window.App?.setAssessmentMonth?.(target.value);
+  }
+
   if (target?.matches?.('[data-review-host-select]')) {
     window.App?.onReviewHostChange?.(target.value);
   }
