@@ -6,6 +6,27 @@ Master data bawaan berisi **1.798 livestream sessions** dan dapat diganti melalu
 
 ---
 
+## Phase 3 Production Polish
+
+Phase 3 menambahkan lapisan UX dan reliability untuk deployment production:
+
+- **0 inline `onclick`** pada runtime utama; action dinamis memakai delegated event router.
+- Session Master Log sekarang mendukung **sorting per kolom**, search dengan debounce, keyboard sorting, pilihan **15/30/50/100 rows**, dan pagination state yang lebih stabil.
+- Table statis di Operations/Admin dapat di-sort langsung dari header.
+- Toast notification menggantikan browser `alert()` untuk feedback non-destructive.
+- Destructive actions memakai in-app confirmation dialog, bukan browser `confirm()`.
+- Cloud/Google Sheet sync menampilkan busy state.
+- Setiap view punya error boundary sehingga satu view gagal tidak membuat seluruh dashboard blank.
+- Loading awal menggunakan skeleton state.
+- Repeated inline layout styles dipindah ke reusable component classes.
+- Netlify mendapat CSP, HSTS, anti-frame, permission policy, dan cache revalidation.
+- Optional **Supabase Auth runtime** sudah tersedia. Jika signed in, database request otomatis menggunakan JWT user.
+- Secure authenticated-only RLS migration tersedia di `security/supabase-auth-rls.sql`.
+
+Secure Auth **tidak dipaksa aktif** agar deployment existing tetap kompatibel. Ikuti `security/README.md` setelah Auth users sudah diprovision dan dipetakan ke `sub_accounts.auth_user_id`.
+
+---
+
 ## Phase 2 Architecture
 
 Aplikasi tetap berupa static web app yang ringan, tetapi runtime sekarang dipisah per domain agar lebih mudah dirawat:
@@ -55,7 +76,7 @@ PIN yang disimpan di browser/cloud **tidak lagi disimpan sebagai plaintext**. PI
 
 Admin tidak dapat melihat PIN existing. Untuk mengganti PIN, buka Edit Account lalu masukkan PIN baru.
 
-> Catatan: PIN ini merupakan **client-side access guard**, bukan server-side authentication. Untuk deployment dengan security requirement tinggi, gunakan Supabase Auth dan RLS authenticated-only.
+> Catatan: PIN tetap merupakan **client-side access guard**. Phase 3 sudah menyediakan optional Supabase Auth runtime dan authenticated-only RLS migration untuk authorization server-side.
 
 ---
 
@@ -74,6 +95,14 @@ Menu Admin menyediakan:
 - SQL setup script.
 
 Anon key Supabase bersifat public by design. Keamanan database harus ditentukan oleh Row Level Security (RLS), bukan dengan menyembunyikan anon key.
+
+Untuk Secure Auth mode:
+
+1. Provision user di Supabase Authentication.
+2. Map Auth UUID ke `sub_accounts.auth_user_id`.
+3. Sign in melalui **Admin → Cloud & Storage → Secure Supabase Auth**.
+4. Setelah minimal satu Admin berhasil login, jalankan `security/supabase-auth-rls.sql`.
+5. Setelah secure RLS aktif, anon database write akan ditolak dan permission server-side mengikuti field capability account.
 
 ---
 
