@@ -303,6 +303,44 @@
       }
     },
 
+    async upsertLivestreamSessions(sessions) {
+      if (!this.isConnected) throw new Error('Supabase is not connected.');
+      if (!window.SupabaseAuth?.isAuthenticated?.()) throw new Error('Authentication required.');
+      if (!Array.isArray(sessions) || !sessions.length) throw new Error('No session rows to upload.');
+
+      const clean = sessions.map(row => ({
+        id: String(row.id || ''),
+        date: row.date,
+        brand: String(row.brand || ''),
+        start: String(row.start || ''),
+        end: String(row.end || ''),
+        duration: Number(row.duration || 0),
+        platform: String(row.platform || ''),
+        host: String(row.host || ''),
+        gmv: Number(row.gmv || 0),
+        gmv_hr: Number(row.gmv_hr || 0),
+        product: String(row.product || ''),
+        ctr: Number(row.ctr || 0),
+        ctor: Number(row.ctor || 0),
+        ads_cost: Number(row.ads_cost || 0),
+        views: Number(row.views || 0),
+        followers: Number(row.followers || 0),
+        sold_qty: Number(row.sold_qty || 0),
+        buyer: Number(row.buyer || 0),
+        updated_at: new Date().toISOString()
+      }));
+
+      for (let i = 0; i < clean.length; i += 250) {
+        await this.request('livestream_sessions?on_conflict=id', {
+          method: 'POST',
+          prefer: 'resolution=merge-duplicates,return=minimal',
+          body: JSON.stringify(clean.slice(i, i + 250))
+        });
+      }
+
+      return { success: true, count: clean.length };
+    },
+
     getSQLSchemaScript() {
       return `-- =======================================================
 -- FYC Live Ops - Supabase schema
