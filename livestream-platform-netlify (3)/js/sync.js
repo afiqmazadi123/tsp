@@ -22,19 +22,9 @@
         } catch (e) {}
       }
 
-      // Check for saved custom sessions in localStorage
-      const customSessions = localStorage.getItem('fyc_custom_sessions');
-      if (customSessions) {
-        try {
-          const parsed = JSON.parse(customSessions);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            window.MASTER_SESSIONS = parsed;
-            console.log(`Loaded ${parsed.length} sessions from local storage.`);
-          }
-        } catch (e) {}
-      }
-
-      this.lastSyncTime = localStorage.getItem('fyc_last_sync') || '2026-09-17 15:45';
+      // Private session rows are never restored from browser storage.
+      localStorage.removeItem('fyc_custom_sessions');
+      this.lastSyncTime = localStorage.getItem('fyc_last_sync') || null;
     },
 
     saveConfig(sheetId, sheetName) {
@@ -74,30 +64,33 @@
       this.isSyncing = false;
 
       if (!csvText) {
-        this.updateSyncUI('offline', 'Using bundled master dataset (1,798 rows)');
+        this.updateSyncUI('offline', 'Private cloud data unchanged');
         return {
           success: false,
           fallback: true,
-          message: 'Google Sheets sync restricted by browser CORS. You can drag-and-drop the exported CSV file anytime, or view pre-loaded master data.',
+          message: 'Google Sheets sync is restricted by browser CORS. Use CSV import from an authorized Admin account.',
           error: errorMsg
         };
       }
 
       const sessions = this.parseCSVToSessions(csvText);
       if (sessions.length > 0) {
-        window.MASTER_SESSIONS = sessions;
         try {
-          localStorage.setItem('fyc_custom_sessions', JSON.stringify(sessions));
-        } catch (e) {
-          console.warn('LocalStorage quota exceeded for full dataset cache.');
+          await window.SupabaseEngine.upsertLivestreamSessions(sessions);
+        } catch (err) {
+          this.updateSyncUI('error', 'Secure cloud write failed');
+          return { success: false, message: err.message || 'Unable to save sessions securely.' };
         }
+
+        window.MASTER_SESSIONS = sessions;
+        window.AppStore?.invalidate?.();
 
         const now = new Date();
         const timeStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         this.lastSyncTime = timeStr;
         localStorage.setItem('fyc_last_sync', timeStr);
 
-        this.updateSyncUI('success', `Live Synced (${sessions.length.toLocaleString()} sessions)`);
+        this.updateSyncUI('success', `Securely Synced (${sessions.length.toLocaleString()} sessions)`);
         return { success: true, count: sessions.length, time: timeStr };
       }
 

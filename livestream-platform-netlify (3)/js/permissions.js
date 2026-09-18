@@ -196,6 +196,7 @@
   wrap('openImportBackupModal', ['canManageAccounts'], 'Only account administrators can restore a system backup.');
   wrap('saveSheetSettings', ['canManageAccounts'], 'Only account administrators can change data source settings.');
   wrap('handleCSVFile', ['canManageAccounts'], 'Only account administrators can replace the master dataset.');
+  wrap('triggerSync', ['canManageAccounts'], 'Only account administrators can sync the master dataset.');
   wrap('openAdjustRateModal', ['canManageRates'], 'Your account cannot change host rate cards.');
   wrap('toggleHostPayrollStatus', ['canApprovePayroll'], 'Your account cannot approve or modify payroll status.');
   wrap('approveAllPayroll', ['canApprovePayroll'], 'Your account cannot approve payroll.');

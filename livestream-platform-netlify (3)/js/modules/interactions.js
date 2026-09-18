@@ -497,18 +497,27 @@
 
     handleCSVFile(file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const text = e.target.result;
         const sessions = SyncEngine.parseCSVToSessions(text);
-        if (sessions.length > 0) {
+        if (!sessions.length) {
+          window.UI?.toast?.('Failed to parse sessions. Please check the CSV format.', 'error');
+          return;
+        }
+
+        try {
+          await window.UI.withBusy(
+            () => window.SupabaseEngine.upsertLivestreamSessions(sessions),
+            'Saving private session data…'
+          );
           window.MASTER_SESSIONS = sessions;
-          localStorage.setItem('fyc_custom_sessions', JSON.stringify(sessions));
-          SyncEngine.updateSyncUI('success', `Imported (${sessions.length.toLocaleString()} sessions)`);
-          window.UI?.toast?.(`Imported ${sessions.length.toLocaleString('id-ID')} sessions from ${file.name}.`, 'success');
+          window.AppStore?.invalidate?.();
+          SyncEngine.updateSyncUI('success', `Securely Imported (${sessions.length.toLocaleString()} sessions)`);
+          window.UI?.toast?.(`Securely imported ${sessions.length.toLocaleString('id-ID')} sessions from ${file.name}.`, 'success');
           this.closeModal();
           this.renderCurrentView();
-        } else {
-          window.UI?.toast?.('Failed to parse sessions. Please check the CSV format.', 'error');
+        } catch (err) {
+          window.UI?.toast?.(err?.message || 'Secure import failed.', 'error');
         }
       };
       reader.readAsText(file);
