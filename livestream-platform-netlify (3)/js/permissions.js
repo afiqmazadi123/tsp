@@ -17,6 +17,15 @@
 
   function hasAny(permissions) {
     const current = Accounts.getCurrentAccount();
+
+    if (window.SupabaseAuth?.isAuthenticated?.()) {
+      const authUserId = window.SupabaseAuth.getUser()?.id;
+      const mappedAccounts = Accounts.getAccounts().filter(account => !!account.auth_user_id);
+      if (mappedAccounts.length > 0 && current?.auth_user_id !== authUserId) {
+        return false;
+      }
+    }
+
     return permissions.some(permission => !!current?.[permission]);
   }
 
@@ -98,11 +107,11 @@
     const result = original.renderAdminView(container, data);
 
     if (!hasAny(['canManageRates'])) {
-      container.querySelector('.admin-tab-btn[onclick*="host-rates"]')?.remove();
+      container.querySelector('.admin-tab-btn[data-app-arg="host-rates"]')?.remove();
     }
     if (!hasAny(['canManageAccounts'])) {
-      container.querySelector('.admin-tab-btn[onclick*="sub-accounts"]')?.remove();
-      container.querySelector('.admin-tab-btn[onclick*="cloud-sync"]')?.remove();
+      container.querySelector('.admin-tab-btn[data-app-arg="sub-accounts"]')?.remove();
+      container.querySelector('.admin-tab-btn[data-app-arg="cloud-sync"]')?.remove();
       container.querySelectorAll('button').forEach(button => {
         if (/backup|sub-account/i.test(button.textContent || '')) button.remove();
       });
