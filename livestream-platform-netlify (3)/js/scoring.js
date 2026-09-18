@@ -11,7 +11,7 @@
     assessments: [],
     weights: {
       overall: { performance: 70, assessment: 30 },
-      performance: { gmv: 30, gmv_hr: 25, ctor: 20, views: 15, sold_qty: 10 },
+      performance: { gmv: 40, gmv_hr: 33, ctor: 27, views: 0, sold_qty: 0 },
       assessment: { cta: 30, pin: 25, discipline: 25, grooming: 20 }
     },
 
@@ -23,6 +23,9 @@
       } else if (window.MASTER_CONFIG && window.MASTER_CONFIG.weights) {
         this.weights = JSON.parse(JSON.stringify(window.MASTER_CONFIG.weights));
       }
+
+      this.normalizeAllWeights();
+      localStorage.setItem('fyc_scoring_weights', JSON.stringify(this.weights));
 
       // Load saved assessments
       const savedAssessments = localStorage.getItem('fyc_assessments');
@@ -45,8 +48,107 @@
       }
     },
 
+    getWeightGroupConfig(group) {
+      const configs = {
+        overall: { keys: ['performance', 'assessment'], min: 10 },
+        performance: { keys: ['gmv', 'gmv_hr', 'ctor'], min: 5 },
+        assessment: { keys: ['cta', 'pin', 'discipline', 'grooming'], min: 5 }
+      };
+      return configs[group] || null;
+    },
+
+    normalizeWeightGroup(group) {
+      const config = this.getWeightGroupConfig(group);
+      if (!config) return;
+
+      const target = this.weights[group] || {};
+      const keys = config.keys;
+      const min = config.min;
+      const base = min * keys.length;
+      const remaining = 100 - base;
+
+      const rawWeights = keys.map(key => Math.max(0, Number(target[key] || 0) - min));
+      let rawTotal = rawWeights.reduce((sum, value) => sum + value, 0);
+      if (rawTotal <= 0) {
+        rawTotal = keys.length;
+        for (let i = 0; i < rawWeights.length; i += 1) rawWeights[i] = 1;
+      }
+
+      const exactAdds = rawWeights.map(value => (value / rawTotal) * remaining);
+      const adds = exactAdds.map(Math.floor);
+      let leftover = remaining - adds.reduce((sum, value) => sum + value, 0);
+
+      const order = exactAdds
+        .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+        .sort((a, b) => b.fraction - a.fraction);
+
+      for (let i = 0; i < leftover; i += 1) adds[order[i % order.length].index] += 1;
+
+      keys.forEach((key, index) => {
+        target[key] = min + adds[index];
+      });
+
+      if (group === 'performance') {
+        target.views = 0;
+        target.sold_qty = 0;
+      }
+    },
+
+    normalizeAllWeights() {
+      this.normalizeWeightGroup('overall');
+      this.normalizeWeightGroup('performance');
+      this.normalizeWeightGroup('assessment');
+      return this.weights;
+    },
+
+    rebalanceWeightGroup(group, activeKey, nextValue) {
+      const config = this.getWeightGroupConfig(group);
+      if (!config || !config.keys.includes(activeKey)) return this.weights[group];
+
+      const target = this.weights[group];
+      const keys = config.keys;
+      const min = config.min;
+      const max = 100 - min * (keys.length - 1);
+      const next = Math.max(min, Math.min(max, Math.round(Number(nextValue) || min)));
+
+      target[activeKey] = next;
+
+      const otherKeys = keys.filter(key => key !== activeKey);
+      const remaining = 100 - next;
+      const distributable = remaining - min * otherKeys.length;
+
+      const relative = otherKeys.map(key => Math.max(0, Number(target[key] || 0) - min));
+      let relativeTotal = relative.reduce((sum, value) => sum + value, 0);
+      if (relativeTotal <= 0) {
+        relativeTotal = otherKeys.length;
+        for (let i = 0; i < relative.length; i += 1) relative[i] = 1;
+      }
+
+      const exactAdds = relative.map(value => (value / relativeTotal) * distributable);
+      const adds = exactAdds.map(Math.floor);
+      let leftover = distributable - adds.reduce((sum, value) => sum + value, 0);
+
+      const order = exactAdds
+        .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+        .sort((a, b) => b.fraction - a.fraction);
+
+      for (let i = 0; i < leftover; i += 1) adds[order[i % order.length].index] += 1;
+
+      otherKeys.forEach((key, index) => {
+        target[key] = min + adds[index];
+      });
+
+      if (group === 'performance') {
+        target.views = 0;
+        target.sold_qty = 0;
+      }
+
+      return target;
+    },
+
     saveWeights(newWeights) {
       this.weights = newWeights;
+      this.normalizeAllWeights();
       localStorage.setItem('fyc_scoring_weights', JSON.stringify(this.weights));
     },
 
@@ -192,7 +294,7 @@
       });
 
       const pw = this.weights.performance;
-      const totalPw = (pw.gmv + pw.gmv_hr + pw.ctor + pw.views + pw.sold_qty) || 100;
+      const totalPw = (pw.gmv + pw.gmv_hr + pw.ctor) || 100;
 
       const overallW = this.weights.overall;
       const perfRatio = (overallW.performance || 70) / 100;
@@ -208,9 +310,7 @@
         const perfScore = (
           normGMV * (pw.gmv / totalPw) +
           normGMVHr * (pw.gmv_hr / totalPw) +
-          normCTOR * (pw.ctor / totalPw) +
-          normViews * (pw.views / totalPw) +
-          normSold * (pw.sold_qty / totalPw)
+          normCTOR * (pw.ctor / totalPw)
         );
 
         const assessData = this.calculateHostAssessment(h.name);
