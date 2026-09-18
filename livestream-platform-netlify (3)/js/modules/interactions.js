@@ -13,7 +13,7 @@
       const drawer = document.getElementById('host-detail-drawer');
       if (!drawer) return;
 
-      const allAggs = Analytics.getHostAggregates(Analytics.getFilteredSessions());
+      const allAggs = window.AppStore?.hostAggs || Analytics.getHostAggregates(Analytics.getFilteredSessions());
       const scored = Scoring.computeAllHostScores(allAggs).find(h => h.name.toLowerCase() === hostName.toLowerCase());
       const rateHistory = Payroll.getHostRateHistory(hostName);
       const reviews = Scoring.getHostReviews(hostName);
@@ -50,7 +50,7 @@
         <div class="glass-card" style="margin-bottom:20px;padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <h4 style="font-size:13px;font-weight:600;">Supervisor Assessments (${reviews.length})</h4>
-            <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" onclick="App.openAddReviewModal('${scored.name}')">+ Grade Host</button>
+            <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" data-app-action="openAddReviewModal" data-app-arg="${scored.name}">+ Grade Host</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             ${reviews.length > 0 ? reviews.map(r => `
@@ -59,8 +59,8 @@
                   <span>👤 ${r.reviewer}</span>
                   <div style="display:flex;align-items:center;gap:6px;">
                     <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;">${r.date}</span>
-                    <button class="review-action-btn" onclick="App.openEditReviewModal('${r.id}')" title="Edit this assessment">✏️ Edit</button>
-                    <button class="review-action-btn delete" onclick="App.deleteReview('${r.id}')" title="Delete this assessment">✕</button>
+                    <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">✏️ Edit</button>
+                    <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">✕</button>
                   </div>
                 </div>
                 <div style="font-size:11.5px;color:var(--apple-yellow);margin:6px 0;">
@@ -75,7 +75,7 @@
         <div class="glass-card" style="padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <h4 style="font-size:13px;font-weight:600;">Hourly Rate History</h4>
-            <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" onclick="App.openAdjustRateModal('${scored.name}')">Adjust Rate</button>
+            <button class="apple-btn apple-btn-secondary" style="padding:2px 8px;font-size:10px" data-app-action="openAdjustRateModal" data-app-arg="${scored.name}">Adjust Rate</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${rateHistory.length > 0 ? rateHistory.map(h => `
@@ -187,7 +187,7 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-            <button type="button" class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Cancel</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Save Assessment</button>
           </div>
         </form>
@@ -231,7 +231,7 @@
     openEditReviewModal(reviewId) {
       const review = Scoring.getAssessmentById(reviewId);
       if (!review) {
-        alert('Review record not found.');
+        window.UI?.toast?.('Review record not found.', 'error');
         return;
       }
 
@@ -242,7 +242,7 @@
       container.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <h3 style="font-size:18px;font-weight:700">Edit Assessment: ${review.host}</h3>
-          <button class="review-action-btn delete" onclick="App.deleteReview('${review.id}')" title="Delete Review">Delete Review</button>
+          <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${review.id}" title="Delete Review">Delete Review</button>
         </div>
         <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">
           Reviewed by <strong>${review.reviewer}</strong> on ${review.date}
@@ -289,7 +289,7 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-            <button type="button" class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Cancel</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Update Assessment</button>
           </div>
         </form>
@@ -346,7 +346,7 @@
             <input type="text" id="rate-reason-input" value="Performance promotion" class="select-filter" style="width:100%" />
           </div>
           <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-            <button type="button" class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Cancel</button>
+            <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Update Rate</button>
           </div>
         </form>
@@ -409,8 +409,8 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:10px;">
-            <button class="apple-btn apple-btn-secondary" onclick="App.closeModal()">Close</button>
-            <button class="apple-btn apple-btn-primary" onclick="window.print()">Print Slip</button>
+            <button class="apple-btn apple-btn-secondary" data-app-action="closeModal">Close</button>
+            <button class="apple-btn apple-btn-primary" data-app-action="print">Print Slip</button>
           </div>
         </div>
       `;
@@ -462,10 +462,10 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <button class="apple-btn apple-btn-primary" style="justify-content:center;padding:10px" onclick="App.triggerSync()">
+          <button class="apple-btn apple-btn-primary" style="justify-content:center;padding:10px" data-app-action="triggerSync">
             Sync from Google Sheet (${SyncEngine.sheetId.substring(0, 10)}...)
           </button>
-          <button class="apple-btn apple-btn-secondary" style="justify-content:center;padding:10px" onclick="App.closeModal()">
+          <button class="apple-btn apple-btn-secondary" style="justify-content:center;padding:10px" data-app-action="closeModal">
             Done
           </button>
         </div>
@@ -498,11 +498,11 @@
           window.MASTER_SESSIONS = sessions;
           localStorage.setItem('fyc_custom_sessions', JSON.stringify(sessions));
           SyncEngine.updateSyncUI('success', `Imported (${sessions.length.toLocaleString()} sessions)`);
-          alert(`Successfully imported ${sessions.length} sessions from ${file.name}!`);
+          window.UI?.toast?.(`Imported ${sessions.length.toLocaleString('id-ID')} sessions from ${file.name}.`, 'success');
           this.closeModal();
           this.renderCurrentView();
         } else {
-          alert('Failed to parse sessions. Please check the CSV format.');
+          window.UI?.toast?.('Failed to parse sessions. Please check the CSV format.', 'error');
         }
       };
       reader.readAsText(file);
