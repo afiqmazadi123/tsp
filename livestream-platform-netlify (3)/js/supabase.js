@@ -72,13 +72,22 @@
         await window.SupabaseAuth.ensureFreshSession();
       }
 
-      const response = await fetch(`${this.url}/rest/v1/${path}`, {
+      const makeRequest = () => fetch(`${this.url}/rest/v1/${path}`, {
         ...options,
         headers: {
           ...this.getHeaders(options.prefer),
           ...(options.headers || {})
         }
       });
+
+      let response = await makeRequest();
+
+      // Production browsers can hold a revoked access token in localStorage.
+      // Recover once with the refresh token instead of leaving the app stuck.
+      if (response.status === 401 && window.SupabaseAuth?.isAuthenticated?.()) {
+        const recovered = await window.SupabaseAuth.recoverFromUnauthorized?.();
+        if (recovered) response = await makeRequest();
+      }
 
       if (!response.ok) {
         let detail = '';

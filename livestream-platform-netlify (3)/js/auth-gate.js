@@ -148,11 +148,11 @@
         <div class="auth-gate-header">
           <span class="auth-security-pill warning">Secure workspace unavailable</span>
           <h1>Unable to load private data</h1>
-          <p>The secure session is valid, but the private workspace could not be loaded.</p>
+          <p>The private workspace could not be loaded. A stale browser session will be repaired automatically on the next retry.</p>
         </div>
         <div class="auth-gate-error">${this.escape(message || 'Unknown error')}</div>
         <div class="auth-gate-actions">
-          <button class="auth-secondary-btn" id="auth-error-signout">Sign out</button>
+          <button class="auth-secondary-btn" id="auth-error-signout">Reset session</button>
           <button class="auth-login-submit" id="auth-error-retry">Try again</button>
         </div>
       `);
