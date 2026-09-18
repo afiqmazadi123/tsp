@@ -363,12 +363,14 @@
                     </div>
                   </div>
                   <div style="display:flex;gap:6px;">
-                    <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">
-                      ✏️ Edit
-                    </button>
-                    <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">
-                      ✕
-                    </button>
+                    ${(r.reviewer_account_id === currentAcc.id || currentAcc.canManageAccounts) ? `
+                      <button class="review-action-btn" data-app-action="openEditReviewModal" data-app-arg="${r.id}" title="Edit this assessment">
+                        ✏️ Edit
+                      </button>
+                      <button class="review-action-btn delete" data-app-action="deleteReview" data-app-arg="${r.id}" title="Delete this assessment">
+                        ✕
+                      </button>
+                    ` : '<span class="helper-text">Read only</span>'}
                   </div>
                 </div>
 
