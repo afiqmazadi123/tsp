@@ -121,15 +121,15 @@
             <div class="chart-wrapper">
               <canvas id="platformBarCanvas" class="chart-canvas"></canvas>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
-              <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
-                <div style="font-size:11px;color:var(--apple-cyan);font-weight:600">TikTok Live</div>
-                <div style="font-size:16px;font-weight:700;margin-top:2px">${AppleCharts.formatIDRShort(platformComp.TikTok.gmv)}</div>
+            <div class="platform-summary-grid">
+              <div class="platform-summary-card">
+                <div class="platform-summary-label tiktok">TikTok Live</div>
+                <div class="platform-summary-value">${AppleCharts.formatIDRShort(platformComp.TikTok.gmv)}</div>
                 <div class="helper-text">${platformComp.TikTok.duration.toFixed(0)} hrs • Rp ${(platformComp.TikTok.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
               </div>
-              <div style="padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
-                <div style="font-size:11px;color:var(--apple-orange);font-weight:600">Shopee Live</div>
-                <div style="font-size:16px;font-weight:700;margin-top:2px">${AppleCharts.formatIDRShort(platformComp.Shopee.gmv)}</div>
+              <div class="platform-summary-card">
+                <div class="platform-summary-label shopee">Shopee Live</div>
+                <div class="platform-summary-value">${AppleCharts.formatIDRShort(platformComp.Shopee.gmv)}</div>
                 <div class="helper-text">${platformComp.Shopee.duration.toFixed(0)} hrs • Rp ${(platformComp.Shopee.gmvHour).toLocaleString('id-ID', {maximumFractionDigits:0})}/hr</div>
               </div>
             </div>
@@ -238,14 +238,12 @@
             </div>
             <div class="stack-10">
               ${topProducts.map((p, i) => `
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm)">
-                  <div style="max-width:70%">
-                    <div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+1}. ${p.product}</div>
-                    <div style="font-size:10.5px;color:var(--text-tertiary)">Brand: ${p.brand} • ${p.sessions} live shifts</div>
+                <div class="product-rank-row">
+                  <div class="product-rank-main">
+                    <div class="product-rank-name">${i+1}. ${p.product}</div>
+                    <div class="product-rank-meta">Brand: ${p.brand} • ${p.sessions} live shifts</div>
                   </div>
-                  <div style="text-align:right">
-                    <div style="font-size:13px;font-weight:700;color:var(--apple-cyan)">${p.sold.toLocaleString()} pcs</div>
-                  </div>
+                  <div class="product-rank-value">${p.sold.toLocaleString()} pcs</div>
                 </div>
               `).join('')}
             </div>
