@@ -186,44 +186,205 @@
     App.renderCurrentView();
   }
 
-  function addDashboardTooltip(canvas) {
-    if (!canvas || canvas.dataset.tooltipBound === '1') return;
+  function attachChartInteraction(canvas, config = {}) {
+    if (!canvas || canvas.dataset.chartInteractionBound === '1') return;
     const wrapper = canvas.closest('.chart-wrapper');
     if (!wrapper) return;
-    canvas.dataset.tooltipBound = '1';
+
+    canvas.dataset.chartInteractionBound = '1';
+    canvas.classList.add('chart-interactive');
+    canvas.tabIndex = 0;
+    canvas.setAttribute('role', 'button');
+    canvas.setAttribute('aria-label', config.ariaLabel || 'Interactive chart');
 
     const tooltip = document.createElement('div');
-    tooltip.className = 'chart-hover-tooltip';
+    tooltip.className = 'chart-hover-tooltip chart-hit-tooltip';
     tooltip.hidden = true;
     wrapper.appendChild(tooltip);
 
-    canvas.addEventListener('mousemove', e => {
-      const points = canvas._chartPoints || [];
-      if (!points.length) return;
+    const getHit = (x, y) => window.AppleCharts?.getHitAt?.(canvas, x, y) || null;
 
-      const x = e.offsetX;
-      let nearest = points[0];
-      let distance = Math.abs(points[0].x - x);
-      points.forEach(point => {
-        const d = Math.abs(point.x - x);
-        if (d < distance) {
-          nearest = point;
-          distance = d;
-        }
-      });
+    const showTooltip = (hit) => {
+      if (!hit || typeof config.formatTooltip !== 'function') {
+        tooltip.hidden = true;
+        return;
+      }
 
-      const datum = nearest.data || {};
-      tooltip.innerHTML = `
-        <strong>${formatPeriod(datum.date, datum.date)}</strong>
-        <span>${window.AppleCharts ? AppleCharts.formatIDR(datum.value || 0) : (datum.value || 0).toLocaleString('id-ID')}</span>
-        <small>${(datum.sessions || 0).toLocaleString('id-ID')} sessions · ${Number(datum.hours || 0).toFixed(1)}h</small>
-      `;
-      tooltip.style.left = `${Math.min(Math.max(nearest.x, 86), wrapper.clientWidth - 86)}px`;
-      tooltip.style.top = `${Math.max(nearest.y - 16, 24)}px`;
+      const detail = config.formatTooltip(hit);
+      if (!detail) {
+        tooltip.hidden = true;
+        return;
+      }
+
+      tooltip.innerHTML = '';
+      const title = document.createElement('strong');
+      title.textContent = detail.title || '';
+      const value = document.createElement('span');
+      value.textContent = detail.value || '';
+      const meta = document.createElement('small');
+      meta.textContent = detail.meta || '';
+      tooltip.append(title, value, meta);
+
+      const x = Number.isFinite(hit.x) ? hit.x : (hit.type === 'bar' ? hit.x + hit.width / 2 : wrapper.clientWidth / 2);
+      const y = Number.isFinite(hit.y) ? hit.y : (hit.type === 'bar' ? hit.y : 36);
+      tooltip.style.left = `${Math.min(Math.max(x, 86), wrapper.clientWidth - 86)}px`;
+      tooltip.style.top = `${Math.max(y - 10, 24)}px`;
       tooltip.hidden = false;
+    };
+
+    canvas.addEventListener('mousemove', event => {
+      const hit = getHit(event.offsetX, event.offsetY);
+      canvas.style.cursor = hit ? 'pointer' : 'default';
+      showTooltip(hit);
     });
 
-    canvas.addEventListener('mouseleave', () => { tooltip.hidden = true; });
+    canvas.addEventListener('mouseleave', () => {
+      canvas.style.cursor = 'default';
+      tooltip.hidden = true;
+    });
+
+    canvas.addEventListener('click', event => {
+      const hit = getHit(event.offsetX, event.offsetY);
+      if (typeof config.onActivate === 'function') config.onActivate(hit, event);
+    });
+
+    canvas.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      if (typeof config.onActivate === 'function') config.onActivate(null, event);
+    });
+  }
+
+  function applySingleDayFilter(date) {
+    if (!date) {
+      App.switchView('analytics');
+      return;
+    }
+
+    Analytics.setFilter('startDate', date);
+    Analytics.setFilter('endDate', date);
+    Analytics.setFilter('dateRange', 'custom');
+
+    const startInput = document.getElementById('filter-start-date');
+    const endInput = document.getElementById('filter-end-date');
+    const dateSelect = document.getElementById('filter-date-range');
+    const custom = document.getElementById('custom-date-container');
+    if (startInput) startInput.value = date;
+    if (endInput) endInput.value = date;
+    if (dateSelect) dateSelect.value = 'custom';
+    if (custom) custom.style.display = 'flex';
+
+    window.UI?.toast?.(`Showing sessions for ${formatPeriod(date, date)}.`, 'info');
+    App.switchView('analytics');
+  }
+
+  function applyBrandFilter(brand) {
+    if (!brand) {
+      App.switchView('brands');
+      return;
+    }
+
+    Analytics.setFilter('brand', brand);
+    const select = document.getElementById('filter-brand');
+    if (select) select.value = brand;
+    window.UI?.toast?.(`Filtered to ${brand}.`, 'info');
+    App.switchView('brands');
+  }
+
+  function applyPlatformFilter(platform) {
+    if (!platform) {
+      App.switchView('analytics');
+      return;
+    }
+
+    Analytics.setFilter('platform', platform);
+    document.querySelectorAll('.platform-seg-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.platform === platform);
+    });
+    window.UI?.toast?.(`Filtered to ${platform}.`, 'info');
+    App.switchView('analytics');
+  }
+
+  function bindDashboardCharts() {
+    const trendCanvas = document.getElementById('gmvTrendCanvas');
+    attachChartInteraction(trendCanvas, {
+      ariaLabel: 'GMV trend. Click a day to open its sessions.',
+      formatTooltip(hit) {
+        const datum = hit?.data;
+        if (!datum) return null;
+        return {
+          title: formatPeriod(datum.date, datum.date),
+          value: AppleCharts.formatIDR(datum.value || 0),
+          meta: `${(datum.sessions || 0).toLocaleString('id-ID')} sessions · ${Number(datum.hours || 0).toFixed(1)}h · click for detail`
+        };
+      },
+      onActivate(hit) {
+        applySingleDayFilter(hit?.data?.date);
+      }
+    });
+
+    const donut = document.getElementById('brandDonutCanvas');
+    attachChartInteraction(donut, {
+      ariaLabel: 'Brand share chart. Click a brand slice to open its details.',
+      formatTooltip(hit) {
+        const datum = hit?.data;
+        if (!datum) return null;
+        return {
+          title: datum.label || 'Brand',
+          value: AppleCharts.formatIDR(datum.value || 0),
+          meta: 'Click to filter this brand'
+        };
+      },
+      onActivate(hit) {
+        applyBrandFilter(hit?.data?.label);
+      }
+    });
+
+    const platform = document.getElementById('platformBarCanvas');
+    attachChartInteraction(platform, {
+      ariaLabel: 'Platform comparison chart. Click a bar to filter by platform.',
+      formatTooltip(hit) {
+        if (!hit) return null;
+        let value = Number(hit.value || 0).toLocaleString('id-ID', { maximumFractionDigits: 1 });
+        if (/GMV/i.test(hit.category || '')) value = `Rp ${value} Jt`;
+        else if (/Hours/i.test(hit.category || '')) value = `${value} hrs`;
+        else if (/Sessions/i.test(hit.category || '')) value = `${value} sessions`;
+        return {
+          title: `${hit.seriesName || 'Platform'} · ${hit.category || ''}`,
+          value,
+          meta: 'Click to open filtered live analytics'
+        };
+      },
+      onActivate(hit) {
+        applyPlatformFilter(hit?.seriesName);
+      }
+    });
+  }
+
+  function bindAnalyticsCharts() {
+    const slot = document.getElementById('slotBarCanvas');
+    attachChartInteraction(slot, {
+      ariaLabel: 'Broadcast slot productivity chart. Click a bar to inspect its value.',
+      formatTooltip(hit) {
+        if (!hit) return null;
+        let value = Number(hit.value || 0).toLocaleString('id-ID', { maximumFractionDigits: 1 });
+        if (/GMV/i.test(hit.seriesName || '')) value = `Rp ${value} Jt`;
+        if (/Duration/i.test(hit.seriesName || '')) value = `${value} hrs`;
+        return {
+          title: `${hit.category || 'Slot'} · ${hit.seriesName || ''}`,
+          value,
+          meta: 'Click to pin this metric'
+        };
+      },
+      onActivate(hit) {
+        if (!hit) {
+          window.UI?.toast?.('Click one of the bars to inspect its value.', 'info');
+          return;
+        }
+        const suffix = /Duration/i.test(hit.seriesName || '') ? ' hrs' : (/GMV/i.test(hit.seriesName || '') ? ' Jt GMV' : '');
+        window.UI?.toast?.(`${hit.category}: ${Number(hit.value || 0).toLocaleString('id-ID', { maximumFractionDigits: 1 })}${suffix}`, 'info');
+      }
+    });
   }
 
   function enhanceDashboard(container, data) {
@@ -339,7 +500,7 @@
       });
     }
 
-    setTimeout(() => addDashboardTooltip(document.getElementById('gmvTrendCanvas')), 90);
+    setTimeout(bindDashboardCharts, 100);
   }
 
   function emptyStateIfNeeded() {
@@ -387,6 +548,12 @@
   App.renderDashboardView = function (container, data) {
     originalDashboard(container, data);
     enhanceDashboard(container, data);
+  };
+
+  const originalAnalytics = App.renderAnalyticsView.bind(App);
+  App.renderAnalyticsView = function (container, data) {
+    originalAnalytics(container, data);
+    setTimeout(bindAnalyticsCharts, 100);
   };
 
   const originalRenderCurrentView = App.renderCurrentView.bind(App);
