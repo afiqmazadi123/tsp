@@ -1,20 +1,32 @@
 -- ============================================================================
 -- FYC Live Ops — Secure Supabase Auth + RLS migration
 -- ============================================================================
--- IMPORTANT
--- 1) Provision users in Supabase Authentication first.
--- 2) Map each Auth user UUID to public.sub_accounts.auth_user_id.
--- 3) Test with an authenticated browser session.
--- 4) Only then run the policy replacement section below.
+-- IMPORTANT: RUN THIS IN TWO STAGES.
 --
--- This migration intentionally removes public anon database access.
+-- STAGE A (safe preparation)
+-- 1) Provision users in Supabase Authentication.
+-- 2) Run ONLY the ALTER TABLE statement immediately below.
+-- 3) Map each Auth UUID to public.sub_accounts.auth_user_id.
+-- 4) Deploy Phase 3 and verify the mapped Admin can sign in.
+--
+-- STAGE B (lock down)
+-- 5) After mapping is verified, run this ENTIRE file. The ALTER is idempotent.
+--    The policy section intentionally removes public anon database access.
 -- ============================================================================
 
-BEGIN;
-
+-- STAGE A: safe schema preparation.
 ALTER TABLE public.sub_accounts
   ADD COLUMN IF NOT EXISTS auth_user_id UUID UNIQUE
   REFERENCES auth.users(id) ON DELETE SET NULL;
+
+-- STOP HERE on the first run. Map Auth UUIDs before continuing to Stage B.
+-- Example:
+-- UPDATE public.sub_accounts
+-- SET auth_user_id = '00000000-0000-0000-0000-000000000000'
+-- WHERE id = 'acc_afiq';
+
+-- STAGE B: run the complete file only after at least one Admin mapping works.
+BEGIN;
 
 ALTER TABLE public.sub_accounts
   ALTER COLUMN pin SET DEFAULT '';
@@ -171,8 +183,10 @@ USING (public.fyc_has_permission('rates'));
 COMMIT;
 
 -- ============================================================================
--- Mapping example (replace values):
--- UPDATE public.sub_accounts
--- SET auth_user_id = '00000000-0000-0000-0000-000000000000'
--- WHERE id = 'acc_afiq';
+-- Verification after migration:
+-- - Unauthenticated/anon table writes should fail.
+-- - Authenticated members can read assessments/rates.
+-- - Evaluators can mutate assessments.
+-- - Rate managers can mutate host_rates.
+-- - Account admins can manage sub_accounts.
 -- ============================================================================
