@@ -7,7 +7,7 @@
   <script src="js/theme-init.js"></script>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/enhancements.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="assets/fyc-logo.svg">
 </head>
 <body class="auth-pending">
 
@@ -21,8 +21,8 @@
     <!-- Apple Glassmorphic Sidebar -->
     <aside id="sidebar">
       <div class="sidebar-header">
-        <div class="brand-badge">
-          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <div class="brand-badge brand-badge-logo">
+          <img src="assets/fyc-logo.svg" alt="FYC" />
         </div>
         <div class="brand-info">
           <h1>FYC Intelligence</h1>
@@ -77,7 +77,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div class="user-profile-pill" id="sidebar-account-btn" style="cursor:pointer;" title="Click to switch sub-account">
+        <div class="user-profile-pill" id="sidebar-account-btn" style="cursor:pointer;" title="Open authenticated profile">
           <div class="user-avatar" id="sidebar-user-avatar">AM</div>
           <div class="user-meta">
             <div class="name" id="sidebar-user-name">Afiq Mazadi</div>
@@ -102,7 +102,7 @@
 
         <div class="topbar-right">
           <!-- Sub-Account Switcher Pill -->
-          <div class="account-pill" id="topbar-account-btn" title="Click to switch sub-account / team reviewer">
+          <div class="account-pill" id="topbar-account-btn" title="Open authenticated profile">
             <div class="user-avatar" id="topbar-user-avatar" style="width:22px;height:22px;font-size:10px;">AM</div>
             <span id="topbar-user-name" style="font-weight:500;">Afiq Mazadi</span>
             <span style="font-size:10px;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,0.1);color:var(--text-tertiary)" id="topbar-user-role">Admin</span>

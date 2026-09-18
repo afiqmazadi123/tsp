@@ -540,7 +540,9 @@
       container.innerHTML = `
         <div class="${isPitch ? 'pitch-mode-view' : ''}">
           <div class="pitch-hero">
-            <div>
+            <div class="pitch-hero-brand">
+              <img src="assets/fyc-logo.svg" alt="FYC" class="pitch-fyc-logo" />
+              <div>
               <div style="display:inline-block;padding:3px 10px;border-radius:var(--radius-pill);background:rgba(0,113,227,0.2);color:var(--apple-cyan);font-size:11px;font-weight:600;margin-bottom:8px">
                 ${isPitch ? 'CLIENT PRESENTATION DECK' : 'BRAND PORTFOLIO INTELLIGENCE'}
               </div>
@@ -548,6 +550,7 @@
               <p style="font-size:13.5px;color:var(--text-secondary);margin-top:4px">
                 Comprehensive data intelligence across all portfolio brands, GMV conversion, and audience reach
               </p>
+              </div>
             </div>
             <div>
               <button class="apple-btn apple-btn-primary" data-app-action="print">

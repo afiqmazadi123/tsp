@@ -124,7 +124,7 @@
             <p class="view-subtitle">Grade host performance, update previous evaluations, and configure scoring formulas</p>
           </div>
           <div class="action-row">
-            <button class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Switch Evaluator (${currentAcc.name})</button>
+            <button class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">My Profile (${currentAcc.name})</button>
             <button class="apple-btn apple-btn-primary" data-app-action="openAddReviewModal">+ Grade Host</button>
           </div>
         </div>
@@ -136,10 +136,10 @@
             </div>
             <div>
               <div style="font-size:14.5px;font-weight:700;color:var(--text-primary)">
-                Reviewer Active: ${currentAcc.name} (${currentAcc.role})
+                Reviewer: ${currentAcc.name} (${currentAcc.role})
               </div>
               <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">
-                You have submitted evaluations for <strong>${evaluatedCount} of ${totalHostsCount} creators</strong> (${pendingCount} pending your review).
+                Signed-in reviewer identity is locked for security. You have evaluated <strong>${evaluatedCount} of ${totalHostsCount} creators</strong> (${pendingCount} pending).
               </div>
             </div>
           </div>
@@ -415,8 +415,11 @@
 
       container.innerHTML = `
         <div class="print-header">
-          <h1>Livestream Performance Intelligence Executive Report</h1>
-          <p>FYC Agency • Generated on ${new Date().toLocaleDateString('id-ID')}</p>
+          <img src="assets/fyc-logo.svg" alt="FYC" class="report-fyc-logo" />
+          <div>
+            <h1>Livestream Performance Intelligence Executive Report</h1>
+            <p>FYC Agency • Generated on ${new Date().toLocaleDateString('id-ID')}</p>
+          </div>
         </div>
 
         <div class="view-header">
