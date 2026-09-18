@@ -172,48 +172,48 @@
       if (!modal || !container) return;
 
       container.innerHTML = `
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Add New Team Evaluator / Sub-Account</h3>
-        <form id="new-account-form" style="display:flex;flex-direction:column;gap:14px;">
+        <h3 class="modal-title">Add New Team Evaluator / Sub-Account</h3>
+        <form id="new-account-form" class="form-stack">
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Full Name</label>
-            <input type="text" id="new-acc-name" required placeholder="e.g. Sarah Quality Lead" class="select-filter" style="width:100%" />
+            <label class="form-label">Full Name</label>
+            <input type="text" id="new-acc-name" required placeholder="e.g. Sarah Quality Lead" class="select-filter full-width" />
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Role & Title</label>
-            <input type="text" id="new-acc-role" required placeholder="e.g. Senior Shift Evaluator" class="select-filter" style="width:100%" />
+            <label class="form-label">Role & Title</label>
+            <input type="text" id="new-acc-role" required placeholder="e.g. Senior Shift Evaluator" class="select-filter full-width" />
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid-2">
             <div>
-              <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Access PIN / Password</label>
-              <input type="password" id="new-acc-pin" required autocomplete="new-password" placeholder="Set access PIN" class="select-filter" style="width:100%;font-family:monospace" />
+              <label class="form-label">Access PIN / Password</label>
+              <input type="password" id="new-acc-pin" required autocomplete="new-password" placeholder="Set access PIN" class="select-filter full-width code-input" />
             </div>
             <div>
-              <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Avatar Color</label>
-              <input type="color" id="new-acc-color" value="#0071e3" style="width:100%;height:36px;border:none;border-radius:6px;cursor:pointer;background:transparent" />
+              <label class="form-label">Avatar Color</label>
+              <input type="color" id="new-acc-color" value="#0071e3" class="color-input" />
             </div>
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Role Description</label>
-            <input type="text" id="new-acc-desc" placeholder="e.g. Evaluator for evening beauty shifts" class="select-filter" style="width:100%" />
+            <label class="form-label">Role Description</label>
+            <input type="text" id="new-acc-desc" placeholder="e.g. Evaluator for evening beauty shifts" class="select-filter full-width" />
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);border:1px solid var(--border-subtle)">
-            <span style="font-size:11.5px;font-weight:600;color:var(--text-primary)">Permissions:</span>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+          <div class="permission-box">
+            <span class="section-label">Permissions:</span>
+            <label class="checkbox-row">
               <input type="checkbox" id="new-acc-grade" checked /> Can grade and review creators (Evaluator)
             </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <label class="checkbox-row">
               <input type="checkbox" id="new-acc-rates" /> Can manage host hourly rate cards
             </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <label class="checkbox-row">
               <input type="checkbox" id="new-acc-payroll" /> Can verify and approve payroll
             </label>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
+          <div class="form-actions">
             <button type="button" class="apple-btn apple-btn-secondary" data-app-action="openAccountSwitcherModal">Back</button>
             <button type="submit" class="apple-btn apple-btn-primary">Create Sub-Account</button>
           </div>
@@ -259,51 +259,51 @@
       if (!modal || !container) return;
 
       container.innerHTML = `
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Edit Sub-Account: ${acc.name}</h3>
-        <form id="edit-account-form" style="display:flex;flex-direction:column;gap:14px;">
+        <h3 class="modal-title">Edit Sub-Account: ${acc.name}</h3>
+        <form id="edit-account-form" class="form-stack">
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Full Name</label>
-            <input type="text" id="edit-acc-name" value="${acc.name}" required class="select-filter" style="width:100%" />
+            <label class="form-label">Full Name</label>
+            <input type="text" id="edit-acc-name" value="${acc.name}" required class="select-filter full-width" />
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Role & Title</label>
-            <input type="text" id="edit-acc-role" value="${acc.role}" required class="select-filter" style="width:100%" />
+            <label class="form-label">Role & Title</label>
+            <input type="text" id="edit-acc-role" value="${acc.role}" required class="select-filter full-width" />
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid-2">
             <div>
-              <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">PIN / Password</label>
-              <input type="password" id="edit-acc-pin" value="" autocomplete="new-password" placeholder="Leave blank to keep current PIN" class="select-filter" style="width:100%;font-family:monospace" />
+              <label class="form-label">PIN / Password</label>
+              <input type="password" id="edit-acc-pin" value="" autocomplete="new-password" placeholder="Leave blank to keep current PIN" class="select-filter full-width code-input" />
             </div>
             <div>
-              <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Avatar Color</label>
-              <input type="color" id="edit-acc-color" value="${acc.avatarColor || '#0071e3'}" style="width:100%;height:36px;border:none;border-radius:6px;cursor:pointer;background:transparent" />
+              <label class="form-label">Avatar Color</label>
+              <input type="color" id="edit-acc-color" value="${acc.avatarColor || '#0071e3'}" class="color-input" />
             </div>
           </div>
 
           <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;">Role Description</label>
-            <input type="text" id="edit-acc-desc" value="${acc.description || ''}" class="select-filter" style="width:100%" />
+            <label class="form-label">Role Description</label>
+            <input type="text" id="edit-acc-desc" value="${acc.description || ''}" class="select-filter full-width" />
           </div>
 
-          <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);border:1px solid var(--border-subtle)">
-            <span style="font-size:11.5px;font-weight:600;color:var(--text-primary)">Permissions:</span>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+          <div class="permission-box">
+            <span class="section-label">Permissions:</span>
+            <label class="checkbox-row">
               <input type="checkbox" id="edit-acc-grade" ${acc.canGrade ? 'checked' : ''} /> Can grade and review creators (Evaluator)
             </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <label class="checkbox-row">
               <input type="checkbox" id="edit-acc-rates" ${acc.canManageRates ? 'checked' : ''} /> Can manage host hourly rate cards
             </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <label class="checkbox-row">
               <input type="checkbox" id="edit-acc-payroll" ${acc.canApprovePayroll ? 'checked' : ''} /> Can verify and approve payroll
             </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+            <label class="checkbox-row">
               <input type="checkbox" id="edit-acc-accounts" ${acc.canManageAccounts ? 'checked' : ''} /> Can manage sub-accounts & security
             </label>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px;">
+          <div class="form-actions">
             <button type="button" class="apple-btn apple-btn-secondary" data-app-action="closeModal">Cancel</button>
             <button type="submit" class="apple-btn apple-btn-primary">Save Changes</button>
           </div>
