@@ -29,9 +29,7 @@
       } catch (err) {
         console.error('App init error:', err);
         const area = document.getElementById('view-render-area');
-        if (area) {
-          area.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;"><h3>Loading dashboard...</h3><p>' + err.message + '</p></div>';
-        }
+        if (area) this.renderErrorState(area, err);
       }
 
       let resizeTimer;
@@ -230,58 +228,81 @@
       }
     },
 
+    renderErrorState(container, error) {
+      container.innerHTML = `
+        <div class="view-error-state" role="alert">
+          <div class="view-error-icon">!</div>
+          <h3>Something went wrong in this view</h3>
+          <p>The rest of the dashboard is still available. Try rendering this section again.</p>
+          <details>
+            <summary>Technical details</summary>
+            <code></code>
+          </details>
+          <button class="apple-btn apple-btn-primary" data-app-action="renderCurrentView">Try again</button>
+        </div>
+      `;
+      const code = container.querySelector('code');
+      if (code) code.textContent = error?.message || String(error || 'Unknown error');
+    },
+
     // --- VIEW DISPATCHER ---
     renderCurrentView() {
       const container = document.getElementById('view-render-area');
       if (!container) return;
 
-      let data;
-      if (window.AppStore) {
-        data = window.AppStore.viewData(this.currentView);
-      } else {
-        const sessions = Analytics.getFilteredSessions();
-        const hostAggs = Analytics.getHostAggregates(sessions);
-        data = {
-          sessions,
-          kpis: Analytics.calculateKPIs(sessions),
-          hostAggs,
-          scoredHosts: Scoring.computeAllHostScores(hostAggs),
-          brandBreakdown: Analytics.getBrandBreakdown(sessions),
-          platformComp: Analytics.getPlatformComparison(sessions),
-          gmvTrend: Analytics.getGMVTrend(sessions)
-        };
-      }
+      try {
+        let data;
+        if (window.AppStore) {
+          data = window.AppStore.viewData(this.currentView);
+        } else {
+          const sessions = Analytics.getFilteredSessions();
+          const hostAggs = Analytics.getHostAggregates(sessions);
+          data = {
+            sessions,
+            kpis: Analytics.calculateKPIs(sessions),
+            hostAggs,
+            scoredHosts: Scoring.computeAllHostScores(hostAggs),
+            brandBreakdown: Analytics.getBrandBreakdown(sessions),
+            platformComp: Analytics.getPlatformComparison(sessions),
+            gmvTrend: Analytics.getGMVTrend(sessions)
+          };
+        }
 
-      switch (this.currentView) {
-        case 'dashboard':
-          this.renderDashboardView(container, data);
-          break;
-        case 'analytics':
-          this.renderAnalyticsView(container, data);
-          break;
-        case 'hosts':
-          this.renderHostsView(container, data);
-          break;
-        case 'brands':
-          this.renderBrandsView(container, data);
-          break;
-        case 'payroll':
-          this.renderPayrollView(container, data);
-          break;
-        case 'assessment':
-          this.renderAssessmentView(container, data);
-          break;
-        case 'reports':
-          this.renderReportsView(container, data);
-          break;
-        case 'admin':
-          this.renderAdminView(container, data);
-          break;
-        case 'settings':
-          this.renderSettingsView(container);
-          break;
-        default:
-          this.renderDashboardView(container, window.AppStore ? window.AppStore.viewData('dashboard') : data);
+        switch (this.currentView) {
+          case 'dashboard':
+            this.renderDashboardView(container, data);
+            break;
+          case 'analytics':
+            this.renderAnalyticsView(container, data);
+            break;
+          case 'hosts':
+            this.renderHostsView(container, data);
+            break;
+          case 'brands':
+            this.renderBrandsView(container, data);
+            break;
+          case 'payroll':
+            this.renderPayrollView(container, data);
+            break;
+          case 'assessment':
+            this.renderAssessmentView(container, data);
+            break;
+          case 'reports':
+            this.renderReportsView(container, data);
+            break;
+          case 'admin':
+            this.renderAdminView(container, data);
+            break;
+          case 'settings':
+            this.renderSettingsView(container);
+            break;
+          default:
+            this.renderDashboardView(container, window.AppStore ? window.AppStore.viewData('dashboard') : data);
+        }
+      } catch (error) {
+        console.error(`View render failed (${this.currentView}):`, error);
+        this.renderErrorState(container, error);
+        window.UI?.toast?.('This view could not be rendered.', 'error');
       }
     },
 
@@ -294,5 +315,8 @@
     if (window.DataLoader?.ready) await window.DataLoader.ready;
     if (window.Accounts?.ready) await window.Accounts.ready;
     App.init();
+    if (window.DataLoader?.error) {
+      window.UI?.toast?.('Bundled session data could not be loaded.', 'error', { duration: 0 });
+    }
   });
 })(window);
