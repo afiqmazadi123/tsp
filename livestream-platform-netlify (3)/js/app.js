@@ -102,6 +102,7 @@
 
     switchView(viewName) {
       this.currentView = viewName;
+      document.body.dataset.currentView = viewName;
 
       document.querySelectorAll('.nav-item').forEach(el => {
         if (el.getAttribute('data-view') === viewName) {
